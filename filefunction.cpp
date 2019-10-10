@@ -1,6 +1,7 @@
 #include "filefunction.h"
 #include <QDebug>
 #include <QCryptographicHash>
+#include <mutex>
 
 QString QStacker() {
 	return QString();
@@ -41,6 +42,8 @@ QByteArray fileGetContents(const QString& fileName, bool quiet) {
 }
 
 bool fileAppendContents(const QByteArray& pay, const QString& fileName) {
+	static std::mutex mutex;
+	std::lock_guard<std::mutex> lock(mutex);
 	QFileXT file;
 	file.setFileName(fileName);
 	if (!file.open(QIODevice::Append | QIODevice::WriteOnly)) {
