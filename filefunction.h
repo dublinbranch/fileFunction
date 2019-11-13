@@ -8,7 +8,7 @@ class QFileXT : public QFile {
 	bool open(OpenMode flags, bool quiet);
 };
 bool       filePutContents(const QByteArray& pay, const QString& fileName);
-QByteArray fileGetContents(const QString& fileName, bool quiet);
+QByteArray fileGetContents(const QString& fileName, bool quiet = true);
 bool       fileAppendContents(const QByteArray& pay, const QString& fileName);
 
 QByteArray sha1(const QByteArray& original, bool urlSafe = true);
