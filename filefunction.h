@@ -13,4 +13,15 @@ bool       fileAppendContents(const QByteArray& pay, const QString& fileName);
 
 QByteArray sha1(const QByteArray& original, bool urlSafe = true);
 QByteArray sha1(const QString& original, bool urlSafe = true);
+
+void mkdir(const QString& dirName);
+void cleanFolder(const QString& folder);
+
+/**
+ * @brief unzippaFile
+ * @param folder need to ONLY have the file to be extracted
+ * @return
+ */
+QStringList unzippaFile(const QString& folder);
+
 #endif // FILEFUNCTION_H

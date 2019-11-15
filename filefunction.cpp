@@ -1,6 +1,8 @@
 #include "filefunction.h"
-#include <QDebug>
 #include <QCryptographicHash>
+#include <QDebug>
+#include <QDir>
+#include <QProcess>
 #include <mutex>
 
 QString QStacker() {
@@ -42,9 +44,9 @@ QByteArray fileGetContents(const QString& fileName, bool quiet) {
 }
 
 bool fileAppendContents(const QByteArray& pay, const QString& fileName) {
-	static std::mutex mutex;
+	static std::mutex           mutex;
 	std::lock_guard<std::mutex> lock(mutex);
-	QFileXT file;
+	QFileXT                     file;
 	file.setFileName(fileName);
 	if (!file.open(QIODevice::Append | QIODevice::WriteOnly)) {
 		return false;
@@ -64,4 +66,62 @@ QByteArray sha1(const QByteArray& original, bool urlSafe) {
 }
 QByteArray sha1(const QString& original, bool urlSafe) {
 	return sha1(original.toUtf8(), urlSafe);
+}
+
+void mkdir(const QString& dirName) {
+	QDir dir = QDir(dirName);
+	if (!dir.mkpath(".")) {
+		qCritical() << "impossible to create working dir" << dirName << "\n"
+		                                                                "maybe swapTronic is running without the necessary privileges";
+		exit(1);
+	}
+}
+
+void cleanFolder(const QString& folder){
+	auto dir = QDir(folder);
+	dir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
+	auto files = dir.entryList();
+	for(auto file : files){
+		dir.remove(file);
+	}
+}
+
+QStringList unzippaFile(const QString& folder) {
+	auto processedFolder = folder + "/processed";
+	auto extractedFolder = folder + "/extracted";
+	mkdir(processedFolder);
+	mkdir(extractedFolder);
+
+	//verify there are only zip file in this folder
+	auto dir = QDir(folder);
+	dir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
+	dir.setNameFilters(QStringList("*"));
+	auto files = dir.entryList();
+	if (files.size() > 1) {
+		throw QString("the folder %1 has more than 1 file!").arg(folder);
+	}
+
+	const QString program = "unzip";
+	//const QStringList arguments = QStringList() << file;
+	QProcess process;
+	process.setWorkingDirectory(folder);
+	process.start(program, files);
+	process.waitForFinished(30);
+
+	//move away the zip
+	auto old = files.at(0);
+	auto neu = processedFolder + "/" + files.at(0);
+	if(QFile::rename(old, neu)) {
+		qCritical() << "impossible spostare";
+	}
+
+	//rescan directory for extracted file
+	files = dir.entryList();
+	for (auto&& file : files) {
+		//move in extracted and update path
+		auto old = file;
+		auto neu = extractedFolder + "/" + file;
+		QFile::rename(old, neu);
+	}
+	return files;
 }
