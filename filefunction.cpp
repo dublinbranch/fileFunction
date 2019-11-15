@@ -94,9 +94,7 @@ QStringList unzippaFile(const QString& folder) {
 
 	//verify there are only zip file in this folder
 	auto dir = QDir(folder);
-	dir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
-	dir.setNameFilters(QStringList("*"));
-	auto files = dir.entryList();
+	auto files = dir.entryList(QStringList("*"), QDir::Files | QDir::NoDotAndDotDot);
 	if (files.size() > 1) {
 		throw QString("the folder %1 has more than 1 file!").arg(folder);
 	}
@@ -109,18 +107,27 @@ QStringList unzippaFile(const QString& folder) {
 	process.waitForFinished(30);
 
 	//move away the zip
-	auto old = files.at(0);
+	auto old = folder + "/" + files.at(0);
 	auto neu = processedFolder + "/" + files.at(0);
-	if(QFile::rename(old, neu)) {
+	if (QFile::exists(neu))
+	{
+		QFile::remove(neu);
+	}
+
+	if(!QFile::rename(old, neu)) {
 		qCritical() << "impossible spostare";
 	}
 
 	//rescan directory for extracted file
-	files = dir.entryList();
+	files = dir.entryList(QStringList("*"), QDir::Files | QDir::NoDotAndDotDot);
 	for (auto&& file : files) {
 		//move in extracted and update path
-		auto old = file;
-		auto neu = extractedFolder + "/" + file;
+		auto old = folder + "/" + file;
+		auto neu = file = extractedFolder + "/" + file;
+		if (QFile::exists(neu))
+		{
+			QFile::remove(neu);
+		}
 		QFile::rename(old, neu);
 	}
 	return files;
