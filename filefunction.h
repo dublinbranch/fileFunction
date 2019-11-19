@@ -24,4 +24,5 @@ void cleanFolder(const QString& folder);
  */
 QStringList unzippaFile(const QString& folder);
 
+QString getMostRecent(const QString pathDir, const QString &filter);
 #endif // FILEFUNCTION_H

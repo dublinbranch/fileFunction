@@ -35,6 +35,9 @@ bool filePutContents(const QByteArray& pay, const QString& fileName) {
 }
 
 QByteArray fileGetContents(const QString& fileName, bool quiet) {
+	if(fileName.isEmpty()){
+		return QByteArray();
+	}
 	QFileXT file;
 	file.setFileName(fileName);
 	if (!file.open(QIODevice::ReadOnly, quiet)) {
@@ -77,11 +80,11 @@ void mkdir(const QString& dirName) {
 	}
 }
 
-void cleanFolder(const QString& folder){
+void cleanFolder(const QString& folder) {
 	auto dir = QDir(folder);
 	dir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
 	auto files = dir.entryList();
-	for(auto file : files){
+	for (auto file : files) {
 		dir.remove(file);
 	}
 }
@@ -93,7 +96,7 @@ QStringList unzippaFile(const QString& folder) {
 	mkdir(extractedFolder);
 
 	//verify there are only zip file in this folder
-	auto dir = QDir(folder);
+	auto dir   = QDir(folder);
 	auto files = dir.entryList(QStringList("*"), QDir::Files | QDir::NoDotAndDotDot);
 	if (files.size() > 1) {
 		throw QString("the folder %1 has more than 1 file!").arg(folder);
@@ -109,12 +112,11 @@ QStringList unzippaFile(const QString& folder) {
 	//move away the zip
 	auto old = folder + "/" + files.at(0);
 	auto neu = processedFolder + "/" + files.at(0);
-	if (QFile::exists(neu))
-	{
+	if (QFile::exists(neu)) {
 		QFile::remove(neu);
 	}
 
-	if(!QFile::rename(old, neu)) {
+	if (!QFile::rename(old, neu)) {
 		qCritical() << "impossible spostare";
 	}
 
@@ -124,11 +126,26 @@ QStringList unzippaFile(const QString& folder) {
 		//move in extracted and update path
 		auto old = folder + "/" + file;
 		auto neu = file = extractedFolder + "/" + file;
-		if (QFile::exists(neu))
-		{
+		if (QFile::exists(neu)) {
 			QFile::remove(neu);
 		}
 		QFile::rename(old, neu);
 	}
 	return files;
+}
+
+QString getMostRecent(const QString pathDir, const QString& filter) {
+	auto dir     = QDir(pathDir);
+	if(!filter.isEmpty()){
+		QStringList filters;
+		filters << filter;
+		dir.setNameFilters(filters);
+	}
+
+	dir.setSorting(QDir::Time);
+	auto files = dir.entryList();
+	if (!files.isEmpty()) {
+		return pathDir + "/" + files.at(files.size() - 1);
+	}
+	return QString();
 }
