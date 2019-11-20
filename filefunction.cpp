@@ -145,7 +145,7 @@ QString getMostRecent(const QString pathDir, const QString& filter) {
 	dir.setSorting(QDir::Time);
 	auto files = dir.entryList();
 	if (!files.isEmpty()) {
-		return pathDir + "/" + files.at(files.size() - 1);
+		return pathDir + "/" + files.at(0);
 	}
 	return QString();
 }
