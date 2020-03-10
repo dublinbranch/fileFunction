@@ -72,6 +72,8 @@ QByteArray sha1(const QString& original, bool urlSafe) {
 }
 
 void mkdir(const QString& dirName) {
+	static std::mutex            lock;
+	std::scoped_lock<std::mutex> scoped(lock);
 	QDir dir = QDir(dirName);
 	if (!dir.mkpath(".")) {
 		qCritical() << "impossible to create working dir" << dirName << "\n"
