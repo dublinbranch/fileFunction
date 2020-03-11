@@ -109,7 +109,7 @@ QStringList unzippaFile(const QString& folder) {
 	QProcess process;
 	process.setWorkingDirectory(folder);
 	process.start(program, files);
-	process.waitForFinished(30);
+	process.waitForFinished(10000); //10 sec
 
 	//move away the zip
 	auto old = folder + "/" + files.at(0);
