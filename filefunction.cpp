@@ -35,7 +35,7 @@ bool filePutContents(const QByteArray& pay, const QString& fileName) {
 }
 
 QByteArray fileGetContents(const QString& fileName, bool quiet) {
-	if(fileName.isEmpty()){
+	if (fileName.isEmpty()) {
 		return QByteArray();
 	}
 	QFileXT file;
@@ -74,7 +74,7 @@ QByteArray sha1(const QString& original, bool urlSafe) {
 void mkdir(const QString& dirName) {
 	static std::mutex            lock;
 	std::scoped_lock<std::mutex> scoped(lock);
-	QDir dir = QDir(dirName);
+	QDir                         dir = QDir(dirName);
 	if (!dir.mkpath(".")) {
 		qCritical() << "impossible to create working dir" << dirName << "\n"
 		                                                                "maybe swapTronic is running without the necessary privileges";
@@ -137,8 +137,8 @@ QStringList unzippaFile(const QString& folder) {
 }
 
 QString getMostRecent(const QString pathDir, const QString& filter) {
-	auto dir     = QDir(pathDir);
-	if(!filter.isEmpty()){
+	auto dir = QDir(pathDir);
+	if (!filter.isEmpty()) {
 		QStringList filters;
 		filters << filter;
 		dir.setNameFilters(filters);
@@ -150,4 +150,8 @@ QString getMostRecent(const QString pathDir, const QString& filter) {
 		return pathDir + "/" + files.at(0);
 	}
 	return QString();
+}
+
+QString sha1QS(const QString& original, bool urlSafe) {
+	return sha1(original, urlSafe);
 }
