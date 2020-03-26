@@ -4,10 +4,8 @@
 #include <QDir>
 #include <QProcess>
 #include <mutex>
+#include "QStacker/qstacker.h"
 
-QString QStacker() {
-	return QString();
-}
 bool QFileXT::open(QIODevice::OpenMode flags) {
 	return open(flags, false);
 }
@@ -16,7 +14,7 @@ bool QFileXT::open(QIODevice::OpenMode flags, bool quiet) {
 	if (!QFile::open(flags)) {
 		if (!quiet) {
 			qCritical().noquote() << errorString() << "opening" << fileName() << "\n"
-			                      << QStacker();
+			                      << QStacker16();
 		}
 		return false;
 	}
