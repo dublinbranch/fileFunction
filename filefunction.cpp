@@ -74,7 +74,7 @@ void mkdir(const QString& dirName) {
 	std::scoped_lock<std::mutex> scoped(lock);
 	QDir                         dir = QDir(dirName);
 	if (!dir.mkpath(".")) {
-		qCritical() << "impossible to create working dir" << dirName << "\n"
+		qCritical().noquote() << "impossible to create working dir" << dirName << "\n"
 		                                                                "maybe swapTronic is running without the necessary privileges";
 		exit(1);
 	}
@@ -117,7 +117,7 @@ QStringList unzippaFile(const QString& folder) {
 	}
 
 	if (!QFile::rename(old, neu)) {
-		qCritical() << "impossible spostare";
+		qCritical().noquote() << "impossible spostare";
 	}
 
 	//rescan directory for extracted file
