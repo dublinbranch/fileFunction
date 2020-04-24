@@ -13,8 +13,8 @@ bool QFileXT::open(QIODevice::OpenMode flags) {
 bool QFileXT::open(QIODevice::OpenMode flags, bool quiet) {
 	if (!QFile::open(flags)) {
 		if (!quiet) {
-			qDebug().noquote() << errorString() << "opening" << fileName() << "\n"
-			                   << QStacker16();
+			qWarning().noquote() << errorString() << "opening" << fileName() << "\n"
+			                     << QStacker16();
 		}
 		return false;
 	}
@@ -83,8 +83,8 @@ void mkdir(const QString& dirName) {
 	std::scoped_lock<std::mutex> scoped(lock);
 	QDir                         dir = QDir(dirName);
 	if (!dir.mkpath(".")) {
-		qCritical().noquote() << "impossible to create working dir" << dirName << "\n"
-		                                                                          "maybe swapTronic is running without the necessary privileges";
+		qWarning().noquote() << "impossible to create working dir" << dirName << "\n"
+		                                                                         "maybe swapTronic is running without the necessary privileges";
 		exit(1);
 	}
 }
@@ -126,7 +126,7 @@ QStringList unzippaFile(const QString& folder) {
 	}
 
 	if (!QFile::rename(old, neu)) {
-		qCritical().noquote() << "impossible spostare";
+		qWarning().noquote() << "impossible spostare";
 	}
 
 	//rescan directory for extracted file
