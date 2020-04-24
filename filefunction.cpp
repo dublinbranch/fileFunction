@@ -1,10 +1,10 @@
 #include "filefunction.h"
+#include "QStacker/qstacker.h"
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QDir>
 #include <QProcess>
 #include <mutex>
-#include "QStacker/qstacker.h"
 
 bool QFileXT::open(QIODevice::OpenMode flags) {
 	return open(flags, false);
@@ -13,8 +13,8 @@ bool QFileXT::open(QIODevice::OpenMode flags) {
 bool QFileXT::open(QIODevice::OpenMode flags, bool quiet) {
 	if (!QFile::open(flags)) {
 		if (!quiet) {
-			qCritical().noquote() << errorString() << "opening" << fileName() << "\n"
-			                      << QStacker16();
+			qDebug().noquote() << errorString() << "opening" << fileName() << "\n"
+			                   << QStacker16();
 		}
 		return false;
 	}
@@ -27,12 +27,20 @@ bool filePutContents(const QByteArray& pay, const QString& fileName) {
 	if (!file.open(QIODevice::Truncate | QIODevice::WriteOnly)) {
 		return false;
 	}
-	file.write(pay);
+	auto written = file.write(pay);
+	if (written != pay.size()) {
+		return false;
+	}
 	file.close();
 	return true;
 }
 
 QByteArray fileGetContents(const QString& fileName, bool quiet) {
+	bool ok;
+	return fileGetContents(fileName, quiet, ok);
+}
+
+QByteArray fileGetContents(const QString& fileName, bool quiet, bool& success) {
 	if (fileName.isEmpty()) {
 		return QByteArray();
 	}
@@ -41,6 +49,7 @@ QByteArray fileGetContents(const QString& fileName, bool quiet) {
 	if (!file.open(QIODevice::ReadOnly, quiet)) {
 		return QByteArray();
 	}
+	success = true;
 	return file.readAll();
 }
 
@@ -75,7 +84,7 @@ void mkdir(const QString& dirName) {
 	QDir                         dir = QDir(dirName);
 	if (!dir.mkpath(".")) {
 		qCritical().noquote() << "impossible to create working dir" << dirName << "\n"
-		                                                                "maybe swapTronic is running without the necessary privileges";
+		                                                                          "maybe swapTronic is running without the necessary privileges";
 		exit(1);
 	}
 }

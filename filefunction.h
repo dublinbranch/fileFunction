@@ -9,6 +9,7 @@ class QFileXT : public QFile {
 };
 bool       filePutContents(const QByteArray& pay, const QString& fileName);
 QByteArray fileGetContents(const QString& fileName, bool quiet = true);
+QByteArray fileGetContents(const QString& fileName, bool quiet, bool& success);
 bool       fileAppendContents(const QByteArray& pay, const QString& fileName);
 
 QByteArray sha1(const QByteArray& original, bool urlSafe = true);
