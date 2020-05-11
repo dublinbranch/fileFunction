@@ -37,7 +37,8 @@ bool filePutContents(const QByteArray& pay, const QString& fileName) {
 
 QByteArray fileGetContents(const QString& fileName, bool quiet) {
 	bool ok;
-	return fileGetContents(fileName, quiet, ok);
+	auto x = fileGetContents(fileName, quiet, ok);
+	return x;
 }
 
 QByteArray fileGetContents(const QString& fileName, bool quiet, bool& success) {
@@ -50,7 +51,8 @@ QByteArray fileGetContents(const QString& fileName, bool quiet, bool& success) {
 		return QByteArray();
 	}
 	success = true;
-	return file.readAll();
+	auto x  = file.readAll();
+	return x;
 }
 
 bool fileAppendContents(const QByteArray& pay, const QString& fileName) {
