@@ -41,6 +41,16 @@ QByteArray fileGetContents(const QString& fileName, bool quiet) {
 	return x;
 }
 
+FileGetRes fileGetContents2(const QString& fileName, bool quiet) {
+	bool ok;
+
+	FileGetRes res;
+	res.content = fileGetContents(fileName, quiet, ok);
+	res.exist = ok;
+
+	return res;
+}
+
 QByteArray fileGetContents(const QString& fileName, bool quiet, bool& success) {
 	if (fileName.isEmpty()) {
 		return QByteArray();

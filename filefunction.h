@@ -7,8 +7,15 @@ class QFileXT : public QFile {
 	bool open(OpenMode flags) override;
 	bool open(OpenMode flags, bool quiet);
 };
+
+struct FileGetRes{
+   QByteArray content;
+   bool exist = false;
+};
+
 bool       filePutContents(const QByteArray& pay, const QString& fileName);
 QByteArray fileGetContents(const QString& fileName, bool quiet = true);
+FileGetRes fileGetContents2(const QString& fileName, bool quiet = true);
 QByteArray fileGetContents(const QString& fileName, bool quiet, bool& success);
 bool       fileAppendContents(const QByteArray& pay, const QString& fileName);
 
