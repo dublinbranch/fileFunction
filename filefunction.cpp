@@ -90,15 +90,16 @@ QByteArray sha1(const QString& original, bool urlSafe) {
 	return sha1(original.toUtf8(), urlSafe);
 }
 
-void mkdir(const QString& dirName) {
+bool mkdir(const QString& dirName) {
 	static std::mutex            lock;
 	std::scoped_lock<std::mutex> scoped(lock);
 	QDir                         dir = QDir(dirName);
 	if (!dir.mkpath(".")) {
 		qWarning().noquote() << "impossible to create working dir" << dirName << "\n"
 		                                                                         "maybe swapTronic is running without the necessary privileges";
-		exit(1);
+		return false;
 	}
+	return true;
 }
 
 void cleanFolder(const QString& folder) {

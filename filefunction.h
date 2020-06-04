@@ -23,7 +23,7 @@ QByteArray sha1(const QByteArray& original, bool urlSafe = true);
 QByteArray sha1(const QString& original, bool urlSafe = true);
 QString sha1QS(const QString& original, bool urlSafe = true);
 
-void mkdir(const QString& dirName);
+bool mkdir(const QString& dirName);
 void cleanFolder(const QString& folder);
 
 /**
