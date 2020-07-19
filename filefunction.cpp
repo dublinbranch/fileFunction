@@ -5,6 +5,11 @@
 #include <QDir>
 #include <QProcess>
 #include <mutex>
+#include <boost/tokenizer.hpp>
+
+
+#define QBL(str) QByteArrayLiteral(str)
+#define QSL(str) QStringLiteral(str)
 
 bool QFileXT::open(QIODevice::OpenMode flags) {
 	return open(flags, false);
@@ -46,7 +51,7 @@ FileGetRes fileGetContents2(const QString& fileName, bool quiet) {
 
 	FileGetRes res;
 	res.content = fileGetContents(fileName, quiet, ok);
-	res.exist = ok;
+	res.exist   = ok;
 
 	return res;
 }
@@ -174,4 +179,84 @@ QString getMostRecent(const QString pathDir, const QString& filter) {
 
 QString sha1QS(const QString& original, bool urlSafe) {
 	return sha1(original, urlSafe);
+}
+
+QVector<QByteArray> csvExploder(const QByteArray& line, const char separator) {
+	//https://www.boost.org/doc/libs/1_71_0/libs/tokenizer/doc/char_separator.htm
+	typedef boost::tokenizer<boost::escaped_list_separator<char>> Tokenizer;
+	boost::escaped_list_separator<char>                           sep('\\', ',', '\"');
+	if (separator) {
+		sep = boost::escaped_list_separator<char>('\\', separator, '\"');
+	}
+	QVector<QByteArray>      final;
+	std::vector<std::string> vec2;
+	auto                     cry = line.toStdString();
+	try {
+		Tokenizer tok(cry, sep);
+		vec2.assign(tok.begin(), tok.end());
+	} catch (...) {
+		qWarning() << "error decoding csv line " << line;
+	}
+	//Cry
+	for (auto&& l : vec2) {
+		final.append(QByteArray::fromStdString(l));
+	}
+	return final;
+}
+
+bool readCSVRow(QTextStream& line, QList<QString>& part, const QString separator) {
+
+	static const int delta[][5] = {
+	    //  ,    "   \n    ?  eof
+	    {1, 2, -1, 0, -1}, // 0: parsing (store char)
+	    {1, 2, -1, 0, -1}, // 1: parsing (store column)
+	    {3, 4, 3, 3, -2},  // 2: quote entered (no-op)
+	    {3, 4, 3, 3, -2},  // 3: parsing inside quotes (store char)
+	    {1, 3, -1, 0, -1}, // 4: quote exited (no-op)
+	                       // -1: end of row, store column, success
+	                       // -2: eof inside quotes
+	};
+	part.clear();
+	if (line.atEnd()) {
+		return false;
+	}
+
+	int     state = 0, t;
+	QString cell;
+	QChar   ch;
+
+	while (state >= 0) {
+
+		if (line.atEnd())
+			t = 4;
+		else {
+			line >> ch;
+			if (ch == separator)
+				t = 0;
+			else if (ch == QSL("\""))
+				t = 1;
+			else if (ch == QSL("\n"))
+				t = 2;
+			else
+				t = 3;
+		}
+
+		state = delta[state][t];
+
+		switch (state) {
+		case 0:
+		case 3:
+			cell += ch;
+			break;
+		case -1:
+		case 1:
+			part.append(cell);
+			cell.clear();
+			break;
+		}
+	}
+	if (state == -2)
+		throw std::runtime_error("End-of-file found while inside quotes.");
+
+	return true;
 }

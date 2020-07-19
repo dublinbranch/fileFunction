@@ -8,9 +8,9 @@ class QFileXT : public QFile {
 	bool open(OpenMode flags, bool quiet);
 };
 
-struct FileGetRes{
-   QByteArray content;
-   bool exist = false;
+struct FileGetRes {
+	QByteArray content;
+	bool       exist = false;
 };
 
 bool       filePutContents(const QByteArray& pay, const QString& fileName);
@@ -21,7 +21,7 @@ bool       fileAppendContents(const QByteArray& pay, const QString& fileName);
 
 QByteArray sha1(const QByteArray& original, bool urlSafe = true);
 QByteArray sha1(const QString& original, bool urlSafe = true);
-QString sha1QS(const QString& original, bool urlSafe = true);
+QString    sha1QS(const QString& original, bool urlSafe = true);
 
 bool mkdir(const QString& dirName);
 void cleanFolder(const QString& folder);
@@ -33,5 +33,9 @@ void cleanFolder(const QString& folder);
  */
 QStringList unzippaFile(const QString& folder);
 
-QString getMostRecent(const QString pathDir, const QString &filter);
+QString getMostRecent(const QString pathDir, const QString& filter);
+
+class QTextStream;
+bool readCSVRow(QTextStream& line, QList<QString>& part, const QString separator = ",");
+QVector<QByteArray> csvExploder(const QByteArray& line, const char separator);
 #endif // FILEFUNCTION_H
