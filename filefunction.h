@@ -37,5 +37,5 @@ QString getMostRecent(const QString pathDir, const QString& filter);
 
 class QTextStream;
 bool readCSVRow(QTextStream& line, QList<QString>& part, const QString separator = ",");
-QVector<QByteArray> csvExploder(const QByteArray& line, const char separator);
+QVector<QByteArray> csvExploder(const QByteArray& line, const char separator = 0);
 #endif // FILEFUNCTION_H
