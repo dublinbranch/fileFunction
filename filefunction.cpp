@@ -4,9 +4,9 @@
 #include <QDebug>
 #include <QDir>
 #include <QProcess>
-#include <mutex>
 #include <boost/tokenizer.hpp>
-
+#include <mutex>
+#include <sys/file.h>
 
 #define QBL(str) QByteArrayLiteral(str)
 #define QSL(str) QStringLiteral(str)
@@ -183,10 +183,10 @@ QString sha1QS(const QString& original, bool urlSafe) {
 
 QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 	//The csv we receive is trash sometimes
-	line = line.replace(QBL("\r"),QByteArray());
-	line = line.replace(QBL("\n"),QByteArray());
-	line = line.replace(QBL(" "),QByteArray());
-	
+	line = line.replace(QBL("\r"), QByteArray());
+	line = line.replace(QBL("\n"), QByteArray());
+	line = line.replace(QBL(" "), QByteArray());
+
 	//https://www.boost.org/doc/libs/1_71_0/libs/tokenizer/doc/char_separator.htm
 	typedef boost::tokenizer<boost::escaped_list_separator<char>> Tokenizer;
 	boost::escaped_list_separator<char>                           sep('\\', ',', '\"');
@@ -264,4 +264,20 @@ bool readCSVRow(QTextStream& line, QList<QString>& part, const QString separator
 		throw std::runtime_error("End-of-file found while inside quotes.");
 
 	return true;
+}
+
+void checkFileLock(QByteArray path) {
+	//check if there is another instance running...
+
+	int fd = open(path.data(), O_CREAT | O_RDWR, 0666);
+	if (fd == -1) {
+		qDebug() << path << "error opening";
+		exit(1);
+	}
+
+	if (flock(fd, LOCK_EX | LOCK_NB) == -1) {
+		qWarning().noquote() << path << "is already locked, I refuse to start.\n"
+		                                "(The application is already running.)";
+		exit(1);
+	}
 }

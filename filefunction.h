@@ -1,5 +1,5 @@
-#ifndef FILEFUNCTION_H
-#define FILEFUNCTION_H
+#pragma once
+
 #include <QFile>
 
 class QFileXT : public QFile {
@@ -38,4 +38,5 @@ QString getMostRecent(const QString pathDir, const QString& filter);
 class QTextStream;
 bool readCSVRow(QTextStream& line, QList<QString>& part, const QString separator = ",");
 QVector<QByteArray> csvExploder(QByteArray line, const char separator = 0);
-#endif // FILEFUNCTION_H
+
+void checkFileLock(QByteArray path);
