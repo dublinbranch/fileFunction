@@ -181,7 +181,12 @@ QString sha1QS(const QString& original, bool urlSafe) {
 	return sha1(original, urlSafe);
 }
 
-QVector<QByteArray> csvExploder(const QByteArray& line, const char separator) {
+QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
+	//The csv we receive is trash sometimes
+	line = line.replace(QBL("\r"),QByteArray());
+	line = line.replace(QBL("\n"),QByteArray());
+	line = line.replace(QBL(" "),QByteArray());
+	
 	//https://www.boost.org/doc/libs/1_71_0/libs/tokenizer/doc/char_separator.htm
 	typedef boost::tokenizer<boost::escaped_list_separator<char>> Tokenizer;
 	boost::escaped_list_separator<char>                           sep('\\', ',', '\"');
