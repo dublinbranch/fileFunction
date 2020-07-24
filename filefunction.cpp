@@ -183,9 +183,9 @@ QString sha1QS(const QString& original, bool urlSafe) {
 
 QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 	//The csv we receive is trash sometimes
-	line = line.replace(QBL("\r"), QByteArray());
-	line = line.replace(QBL("\n"), QByteArray());
-	line = line.replace(QBL(" "), QByteArray());
+	line.replace(QBL("\r"), QByteArray());
+	line.replace(QBL("\n"), QByteArray());
+	line.replace(QBL(" "), QByteArray());
 
 	//https://www.boost.org/doc/libs/1_71_0/libs/tokenizer/doc/char_separator.htm
 	typedef boost::tokenizer<boost::escaped_list_separator<char>> Tokenizer;
@@ -200,7 +200,7 @@ QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 		Tokenizer tok(cry, sep);
 		vec2.assign(tok.begin(), tok.end());
 	} catch (...) {
-		qWarning() << "error decoding csv line " << line;
+		qWarning().noquote() << "error decoding csv line " << line;
 	}
 	//Cry
 	for (auto&& l : vec2) {
@@ -264,6 +264,10 @@ bool readCSVRow(QTextStream& line, QList<QString>& part, const QString separator
 		throw std::runtime_error("End-of-file found while inside quotes.");
 
 	return true;
+}
+
+void checkFileLock(QString path) {
+	checkFileLock(path.toUtf8());
 }
 
 void checkFileLock(QByteArray path) {

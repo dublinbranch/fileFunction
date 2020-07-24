@@ -39,4 +39,5 @@ class QTextStream;
 bool readCSVRow(QTextStream& line, QList<QString>& part, const QString separator = ",");
 QVector<QByteArray> csvExploder(QByteArray line, const char separator = 0);
 
+void checkFileLock(QString path);
 void checkFileLock(QByteArray path);
