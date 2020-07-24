@@ -185,7 +185,9 @@ QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 	//The csv we receive is trash sometimes
 	line.replace(QBL("\r"), QByteArray());
 	line.replace(QBL("\n"), QByteArray());
-	line.replace(QBL(" "), QByteArray());
+	//Not only we can receive a new line symbol, we can receive the two character \r or \n o.O
+	line.replace(QBL("\\r"), QByteArray());
+	line.replace(QBL("\\n"), QByteArray());
 
 	//https://www.boost.org/doc/libs/1_71_0/libs/tokenizer/doc/char_separator.htm
 	typedef boost::tokenizer<boost::escaped_list_separator<char>> Tokenizer;
@@ -267,13 +269,9 @@ bool readCSVRow(QTextStream& line, QList<QString>& part, const QString separator
 }
 
 void checkFileLock(QString path) {
-	checkFileLock(path.toUtf8());
-}
-
-void checkFileLock(QByteArray path) {
 	//check if there is another instance running...
 
-	int fd = open(path.data(), O_CREAT | O_RDWR, 0666);
+	int fd = open(path.toUtf8().data(), O_CREAT | O_RDWR, 0666);
 	if (fd == -1) {
 		qDebug() << path << "error opening";
 		exit(1);
@@ -285,3 +283,4 @@ void checkFileLock(QByteArray path) {
 		exit(1);
 	}
 }
+
