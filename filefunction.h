@@ -9,6 +9,9 @@ class QFileXT : public QFile {
 };
 
 struct FileGetRes {
+	operator bool() {
+		return exist;
+	}
 	QByteArray content;
 	bool       exist = false;
 };
