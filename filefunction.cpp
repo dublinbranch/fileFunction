@@ -273,12 +273,12 @@ void checkFileLock(QString path) {
 
 	int fd = open(path.toUtf8().data(), O_CREAT | O_RDWR, 0666);
 	if (fd == -1) {
-		qDebug() << path << "error opening";
+		qWarning() << path << "error opening";
 		exit(1);
 	}
 
 	if (flock(fd, LOCK_EX | LOCK_NB) == -1) {
-		qWarning().noquote() << path << "is already locked, I refuse to start.\n"
+		qInfo().noquote() << path << "is already locked, I refuse to start.\n"
 		                                "(The application is already running.)";
 		exit(1);
 	}
