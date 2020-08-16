@@ -268,6 +268,7 @@ bool readCSVRow(QTextStream& line, QList<QString>& part, const QString separator
 	return true;
 }
 
+using namespace std::literals;
 void checkFileLock(QString path) {
 	//check if there is another instance running...
 
@@ -278,9 +279,8 @@ void checkFileLock(QString path) {
 	}
 
 	if (flock(fd, LOCK_EX | LOCK_NB) == -1) {
-		qInfo().noquote() << path << "is already locked, I refuse to start.\n"
-		                                "(The application is already running.)";
+		auto msg = path.toStdString() + "is already locked, I refuse to start.\n (The application is already running.) "s;
+		std::puts(msg.c_str());
 		exit(1);
 	}
 }
-
