@@ -16,6 +16,7 @@ struct FileGetRes {
 	bool       exist = false;
 };
 
+bool       filePutContents(const QString& pay, const QString& fileName);
 bool       filePutContents(const QByteArray& pay, const QString& fileName);
 QByteArray fileGetContents(const QString& fileName, bool quiet = true);
 FileGetRes fileGetContents2(const QString& fileName, bool quiet = true);

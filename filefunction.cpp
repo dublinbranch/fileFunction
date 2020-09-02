@@ -284,3 +284,7 @@ void checkFileLock(QString path) {
 		exit(1);
 	}
 }
+
+bool filePutContents(const QString& pay, const QString& fileName) {
+	return filePutContents(pay.toUtf8(), fileName);
+}
