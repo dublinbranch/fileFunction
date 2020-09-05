@@ -4,5 +4,6 @@
     $$PWD/filefunction.cpp
     
 HEADERS += \
-	$$PWD/filefunction.h
+	$$PWD/filefunction.h \
+	$$PWD/serialize.h
 
