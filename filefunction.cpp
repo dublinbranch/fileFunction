@@ -190,8 +190,8 @@ QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 	line.replace(QBL("\\n"), QByteArray());
 
 	//https://www.boost.org/doc/libs/1_71_0/libs/tokenizer/doc/char_separator.htm
-	typedef boost::tokenizer<boost::escaped_list_separator<char>> Tokenizer;
-	boost::escaped_list_separator<char>                           sep('\\', ',', '\"');
+	using Tokenizer = boost::tokenizer<boost::escaped_list_separator<char>>;
+	boost::escaped_list_separator<char> sep('\\', ',', '\"');
 	if (separator) {
 		sep = boost::escaped_list_separator<char>('\\', separator, '\"');
 	}
