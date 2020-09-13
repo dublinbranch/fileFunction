@@ -288,3 +288,29 @@ void checkFileLock(QString path) {
 bool filePutContents(const QString& pay, const QString& fileName) {
 	return filePutContents(pay.toUtf8(), fileName);
 }
+/**
+ * @brief deleter
+ * @param folder
+ * @param filter
+ * @param day
+ */
+void deleter(const QString& folder, uint day) {
+	QProcess process;
+	QString  program = "find";
+
+	QStringList params;
+	params << folder;
+	params << "-mtime"
+	       << QString::number(day)
+	       << "-delete";
+
+	process.start(program, params);
+
+	// 10 second
+	process.waitForFinished(10000);
+	QByteArray errorMsg = process.readAllStandardError();
+	if (!errorMsg.isEmpty()) {
+		auto error = process.error();
+		qWarning() << QSL("Error deleting old files in folder %1  status: %2 msg:").arg(folder).arg(error) + errorMsg;
+	}
+}

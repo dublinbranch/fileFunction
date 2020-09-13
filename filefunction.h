@@ -44,3 +44,5 @@ bool                readCSVRow(QTextStream& line, QList<QString>& part, const QS
 QVector<QByteArray> csvExploder(QByteArray line, const char separator = 0);
 
 void checkFileLock(QString path);
+
+void deleter(const QString& folder, uint day);
