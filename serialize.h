@@ -20,7 +20,7 @@ uint fileUnSerialize(QString fileName, T& t) {
 
 	QFileXT file;
 	file.setFileName(fileName);
-	if (!file.open(QIODevice::ReadOnly, false)) {
+	if (!file.open(QIODevice::ReadOnly, true)) {
 		return 0;
 	}
 
