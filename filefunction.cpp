@@ -211,8 +211,7 @@ QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 	return final;
 }
 
-bool readCSVRow(QTextStream& line, QList<QString>& part, const QString separator) {
-
+bool readCSVRow(const QString& line, QStringList& part, const QStringList separator, const QStringList escape = {"\""}) {
 	static const int delta[][5] = {
 	    //  ,    "   \n    ?  eof
 	    {1, 2, -1, 0, -1}, // 0: parsing (store char)
@@ -223,46 +222,48 @@ bool readCSVRow(QTextStream& line, QList<QString>& part, const QString separator
 	                       // -1: end of row, store column, success
 	                       // -2: eof inside quotes
 	};
-	part.clear();
-	if (line.atEnd()) {
+	part.clear(); //clear del contenitore dei pezzi in cui scomporre la riga
+	if (line.isEmpty()) {
 		return false;
 	}
 
-	int     state = 0, t;
-	QString cell;
+	int     actualState = 0, nextState;
+	QString curentBlock;
 	QChar   ch;
 
-	while (state >= 0) {
+	uint pos = 0;
+	while (actualState >= 0) {
 
-		if (line.atEnd())
-			t = 4;
+		if (pos >= line.length())
+			nextState = 4;
 		else {
-			line >> ch;
-			if (ch == separator)
-				t = 0;
-			else if (ch == QSL("\""))
-				t = 1;
+			ch = line[pos];
+			pos++;
+			if (separator.contains(ch))
+				nextState = 0;
+			else if (escape.contains(ch))
+				nextState = 1;
 			else if (ch == QSL("\n"))
-				t = 2;
+				nextState = 2;
 			else
-				t = 3;
+				nextState = 3;
 		}
 
-		state = delta[state][t];
+		actualState = delta[actualState][nextState];
 
-		switch (state) {
+		switch (actualState) {
 		case 0:
 		case 3:
-			cell += ch;
+			curentBlock += ch;
 			break;
 		case -1:
 		case 1:
-			part.append(cell);
-			cell.clear();
+			part.append(curentBlock);
+			curentBlock.clear();
 			break;
 		}
 	}
-	if (state == -2)
+	if (actualState == -2)
 		throw std::runtime_error("End-of-file found while inside quotes.");
 
 	return true;
