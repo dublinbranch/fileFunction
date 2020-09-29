@@ -211,7 +211,7 @@ QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 	return final;
 }
 
-bool readCSVRow(const QString& line, QStringList& part, const QStringList separator, const QStringList escape = {"\""}) {
+bool readCSVRow(const QString& line, QStringList& part, const QStringList separator, const QStringList escape) {
 	static const int delta[][5] = {
 	    //  ,    "   \n    ?  eof
 	    {1, 2, -1, 0, -1}, // 0: parsing (store char)
@@ -231,7 +231,7 @@ bool readCSVRow(const QString& line, QStringList& part, const QStringList separa
 	QString curentBlock;
 	QChar   ch;
 
-	uint pos = 0;
+	int pos = 0;
 	while (actualState >= 0) {
 
 		if (pos >= line.length())
