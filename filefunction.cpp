@@ -211,7 +211,11 @@ QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 	return final;
 }
 
-bool readCSVRow(const QString& line, QStringList& part, const QStringList separator, const QStringList escape) {
+std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separator, const QStringList& escape) {
+	std::vector<QStringRef> part;
+	//Quando si ESCE dal quote, non avanzare di pos, altrimenti diventa "ciao" -> ciao"
+	//questo innesca il problema che se vi è ad esempio ciao,"miao""bau",altro
+	//invece di avere ciao, miaobau, altro non funge perché il range NON é CONTIGUO -.-, ma viene ritornato ad esempio ciao, miao, bau, altro
 	static const int delta[][5] = {
 	    //  ,    "   \n    ?  eof
 	    {1, 2, -1, 0, -1}, // 0: parsing (store char)
@@ -224,26 +228,27 @@ bool readCSVRow(const QString& line, QStringList& part, const QStringList separa
 	};
 	part.clear(); //clear del contenitore dei pezzi in cui scomporre la riga
 	if (line.isEmpty()) {
-		return false;
+		return part;
 	}
 
-	int     actualState = 0, nextState;
-	QString curentBlock;
-	QChar   ch;
+	int                  actualState       = 0, nextState;
+	int                  currentBlockStart = -1;
+	int                  blockEnd          = 0;
+	static const QString newline           = "\n";
+	static const QString empty;
+	int                  pos = 0;
 
-	int pos = 0;
 	while (actualState >= 0) {
-
 		if (pos >= line.length())
 			nextState = 4;
 		else {
-			ch = line[pos];
+			QStringRef ch = line.midRef(pos, 1);
 			pos++;
-			if (separator.contains(ch))
+			if (separator.contains(ch, Qt::CaseInsensitive))
 				nextState = 0;
-			else if (escape.contains(ch))
+			else if (escape.contains(ch, Qt::CaseInsensitive)) {
 				nextState = 1;
-			else if (ch == QSL("\n"))
+			} else if (ch == newline)
 				nextState = 2;
 			else
 				nextState = 3;
@@ -252,21 +257,38 @@ bool readCSVRow(const QString& line, QStringList& part, const QStringList separa
 		actualState = delta[actualState][nextState];
 
 		switch (actualState) {
+		case 4:
+			blockEnd = pos - 1;
+			break;
 		case 0:
 		case 3:
-			curentBlock += ch;
+			if (currentBlockStart == -1) {
+				currentBlockStart = pos - 1;
+			}
+
 			break;
 		case -1:
 		case 1:
-			part.append(curentBlock);
-			curentBlock.clear();
+
+			if (!blockEnd) {
+				blockEnd = pos - 1;
+			}
+			if (currentBlockStart == -1) { //a new block has never started, we have two separator in a row
+				part.push_back(empty.midRef(0, 0));
+			} else {
+				QStringRef v = line.midRef(currentBlockStart, (blockEnd - currentBlockStart));
+				blockEnd     = 0;
+				part.push_back(v);
+				currentBlockStart = -1;
+				//curentBlock.clear();
+			}
 			break;
 		}
 	}
 	if (actualState == -2)
 		throw std::runtime_error("End-of-file found while inside quotes.");
 
-	return true;
+	return part;
 }
 
 using namespace std::literals;

@@ -40,7 +40,7 @@ QStringList unzippaFile(const QString& folder);
 QString getMostRecent(const QString pathDir, const QString& filter);
 
 class QTextStream;
-bool                readCSVRow(const QString& line, QStringList& part, const QStringList separator = {","}, const QStringList escape = {"\""});
+std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separator = {","}, const QStringList& escape = {"\""});
 QVector<QByteArray> csvExploder(QByteArray line, const char separator = 0);
 
 void checkFileLock(QString path);
