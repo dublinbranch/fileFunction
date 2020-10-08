@@ -199,6 +199,7 @@ QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 	std::vector<std::string> vec2;
 	auto                     cry = line.toStdString();
 	try {
+		cxaLevel = CxaLevel::none;
 		Tokenizer tok(cry, sep);
 		vec2.assign(tok.begin(), tok.end());
 	} catch (...) {
