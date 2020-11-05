@@ -39,7 +39,10 @@ QStringList unzippaFile(const QString& folder);
 
 QString getMostRecent(const QString pathDir, const QString& filter);
 
-class QTextStream;
+
+/**
+  The parameter line MUST be kept alive, so the QStringRef can point to something valid
+*/
 std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separator = {","}, const QStringList& escape = {"\""});
 QVector<QByteArray> csvExploder(QByteArray line, const char separator = 0);
 
