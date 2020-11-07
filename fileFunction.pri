@@ -1,6 +1,4 @@
-#there is no reason to add all the header honestly, just link the lib and gg
-
- SOURCES += \
+SOURCES += \
     $$PWD/filefunction.cpp
     
 HEADERS += \

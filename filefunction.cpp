@@ -217,8 +217,19 @@ std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separ
 	//Quando si ESCE dal quote, non avanzare di pos, altrimenti diventa "ciao" -> ciao"
 	//questo innesca il problema che se vi è ad esempio ciao,"miao""bau",altro
 	//invece di avere ciao, miaobau, altro non funge perché il range NON é CONTIGUO -.-, ma viene ritornato ad esempio ciao, miao, bau, altro
+
+	// newState = delta[currentState][event]
+
+	// rows are states
+
+	// columns are events:
+	// 0 = read separator
+	// 1 = read escape
+	// 2 = read new line
+	// 3 = read "normal" character
+	// 4 = reached the end of line (eof if line is a file content)
 	static const int delta[][5] = {
-	    //  ,    "   \n    ?  eof
+		//  ,    "   \n    ?  eof
 	    {1, 2, -1, 0, -1}, // 0: parsing (store char)
 	    {1, 2, -1, 0, -1}, // 1: parsing (store column)
 	    {3, 4, 3, 3, -2},  // 2: quote entered (no-op)
@@ -232,30 +243,33 @@ std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separ
 		return part;
 	}
 
-	int                  actualState       = 0, nextState;
+	int actualState = 0;
+	int pos         = 0;
+
+	// initial invalid value
+	int                  event             = -1;
 	int                  currentBlockStart = -1;
 	int                  blockEnd          = 0;
 	static const QString newline           = "\n";
 	static const QString empty;
-	int                  pos = 0;
 
 	while (actualState >= 0) {
 		if (pos >= line.length())
-			nextState = 4;
+			event = 4;
 		else {
 			QStringRef ch = line.midRef(pos, 1);
 			pos++;
 			if (separator.contains(ch, Qt::CaseInsensitive))
-				nextState = 0;
+				event = 0;
 			else if (escape.contains(ch, Qt::CaseInsensitive)) {
-				nextState = 1;
+				event = 1;
 			} else if (ch == newline)
-				nextState = 2;
+				event = 2;
 			else
-				nextState = 3;
+				event = 3;
 		}
 
-		actualState = delta[actualState][nextState];
+		actualState = delta[actualState][event];
 
 		switch (actualState) {
 		case 4:
