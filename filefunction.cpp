@@ -319,22 +319,20 @@ bool filePutContents(const QString& pay, const QString& fileName) {
  * @param day
  */
 void deleter(const QString& folder, uint day) {
-	QProcess process;
-	QString  program = "find";
+	//we just detach and let it run by itself
+	QProcess* process = new QProcess();
+	process->deleteLater();
 
-	QStringList params;
-	params << folder;
-	params << "-mtime"
-	       << QString::number(day)
-	       << "-delete";
+	process->start("find", {folder, "-mtime", QString::number(day), "-delete"});
 
-	process.start(program, params);
+	// 0.1 second just in case of error to know about them
+	process->waitForFinished(100);
 
-	// 10 second
-	process.waitForFinished(10000);
-	QByteArray errorMsg = process.readAllStandardError();
-	if (!errorMsg.isEmpty()) {
-		auto error = process.error();
-		qWarning() << QSL("Error deleting old files in folder %1  status: %2 msg:").arg(folder).arg(error) + errorMsg;
+	if (process->state() == QProcess::ProcessState::NotRunning) {
+		QByteArray errorMsg = process->readAllStandardError();
+		if (!errorMsg.isEmpty()) {
+			auto error = process->error();
+			qWarning().noquote() << QSL("Error deleting old files in folder %1  status: %2 msg:").arg(folder).arg(error) + errorMsg + QStacker16Light();
+		}
 	}
 }
