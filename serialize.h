@@ -15,18 +15,22 @@ uint fileSerialize(QString fileName, const T& t) {
 	return file.size();
 }
 
+struct UnserializeResult {
+	qint64 size       = 0;
+	bool   fileExists = false;
+};
 template <typename T>
-uint fileUnSerialize(QString fileName, T& t) {
+UnserializeResult fileUnSerialize(QString fileName, T& t) {
 
 	QFileXT file;
 	file.setFileName(fileName);
 	if (!file.open(QIODevice::ReadOnly, true)) {
-		return 0;
+		return {0, false};
 	}
 
 	QDataStream in(&file);
 	in.setVersion(QDataStream::Qt_DefaultCompiledVersion);
 
 	in >> t;
-	return file.size();
+	return {file.size(), true};
 }
