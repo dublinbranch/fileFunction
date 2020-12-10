@@ -39,13 +39,15 @@ QStringList unzippaFile(const QString& folder);
 
 QString getMostRecent(const QString pathDir, const QString& filter);
 
-
 /**
   The parameter line MUST be kept alive, so the QStringRef can point to something valid
 */
 std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separator = {","}, const QStringList& escape = {"\""});
-QVector<QByteArray> csvExploder(QByteArray line, const char separator = 0);
+QVector<QByteArray>     csvExploder(QByteArray line, const char separator = 0);
 
 void checkFileLock(QString path);
 
-void deleter(const QString& folder, uint day);
+namespace std {
+class thread;
+}
+std::thread* deleter(const QString& folder, uint day, uint ms = 1000, bool useThread = false);

@@ -7,6 +7,7 @@
 #include <boost/tokenizer.hpp>
 #include <mutex>
 #include <sys/file.h>
+#include <thread>
 
 #define QBL(str) QByteArrayLiteral(str)
 #define QSL(str) QStringLiteral(str)
@@ -229,7 +230,7 @@ std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separ
 	// 3 = read "normal" character
 	// 4 = reached the end of line (eof if line is a file content)
 	static const int delta[][5] = {
-		//  ,    "   \n    ?  eof
+	    //  ,    "   \n    ?  eof
 	    {1, 2, -1, 0, -1}, // 0: parsing (store char)
 	    {1, 2, -1, 0, -1}, // 1: parsing (store column)
 	    {3, 4, 3, 3, -2},  // 2: quote entered (no-op)
@@ -317,7 +318,7 @@ void checkFileLock(QString path) {
 	}
 
 	if (flock(fd, LOCK_EX | LOCK_NB) == -1) {
-		auto msg = path.toStdString() + "is already locked, I refuse to start.\n (The application is already running.) "s;
+		auto msg = path.toStdString() + " is already locked, I refuse to start.\n (The application is already running.) "s;
 		std::puts(msg.c_str());
 		exit(1);
 	}
@@ -332,21 +333,31 @@ bool filePutContents(const QString& pay, const QString& fileName) {
  * @param filter
  * @param day
  */
-void deleter(const QString& folder, uint day) {
-	//we just detach and let it run by itself
-	QProcess* process = new QProcess();
-	process->deleteLater();
+std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
+	//wrap in a lambda
+	auto task = [=]() {
+		//we just detach and let it run by itself
+		QProcess process;
 
-	process->start("find", {folder, "-mtime", QString::number(day), "-delete"});
+		process.start("find", {folder, "-mtime", QString::number(day), "-delete"});
 
-	// 0.1 second just in case of error to know about them
-	process->waitForFinished(100);
+		// 0.1 second just in case of error to know about them
+		process.waitForFinished(100);
 
-	if (process->state() == QProcess::ProcessState::NotRunning) {
-		QByteArray errorMsg = process->readAllStandardError();
-		if (!errorMsg.isEmpty()) {
-			auto error = process->error();
-			qWarning().noquote() << QSL("Error deleting old files in folder %1  status: %2 msg:").arg(folder).arg(error) + errorMsg + QStacker16Light();
+		if (process.state() == QProcess::ProcessState::NotRunning) {
+			QByteArray errorMsg = process.readAllStandardError();
+			if (!errorMsg.isEmpty()) {
+				auto error = process.error();
+				qWarning().noquote() << QSL("Error deleting old files in folder %1  status: %2 msg:").arg(folder).arg(error) + errorMsg + QStacker16Light();
+				return;
+			}
 		}
+		process.waitForFinished(ms);
+	};
+	if (useThread) {
+		return new std::thread(task);
 	}
+
+	task();
+	return nullptr;
 }
