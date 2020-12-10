@@ -334,8 +334,8 @@ bool filePutContents(const QString& pay, const QString& fileName) {
  * @param day
  */
 std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
-	//wrap in a lambda
-	auto task = [&]() {
+	//wrap in a lambda, copy parameter to avoid they go out of scope
+	auto task = [=]() {
 		//we just detach and let it run by itself
 		QProcess process;
 
