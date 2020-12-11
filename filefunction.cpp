@@ -342,7 +342,7 @@ std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
 		process.start("find", {folder, "-mtime", QString::number(day), "-delete"});
 
 		// 0.1 second just in case of error to know about them
-		process.waitForFinished(100);
+		auto finished = process.waitForFinished(100);
 
 		if (process.state() == QProcess::ProcessState::NotRunning) {
 			QByteArray errorMsg = process.readAllStandardError();
@@ -352,7 +352,14 @@ std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
 				return;
 			}
 		}
-		process.waitForFinished(ms);
+		if (finished) {
+			return;
+		}
+		if (!process.waitForFinished(ms)) {
+			qDebug() << "Still deleting for " << folder << " after" << ms;
+			process.kill();
+			process.waitForFinished(100); //quick wait only to dispatch the kill signal
+		}
 	};
 	if (useThread) {
 		return new std::thread(task);
