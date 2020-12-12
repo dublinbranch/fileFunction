@@ -336,29 +336,31 @@ bool filePutContents(const QString& pay, const QString& fileName) {
 std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
 	//wrap in a lambda, copy parameter to avoid they go out of scope
 	auto task = [=]() {
-		//we just detach and let it run by itself
 		QProcess process;
 
 		process.start("find", {folder, "-mtime", QString::number(day), "-delete"});
+		auto finished = process.waitForFinished(ms);
 
-		// 0.1 second just in case of error to know about them
-		auto finished = process.waitForFinished(100);
-
-		if (process.state() == QProcess::ProcessState::NotRunning) {
-			QByteArray errorMsg = process.readAllStandardError();
-			if (!errorMsg.isEmpty()) {
-				auto error = process.error();
-				qWarning().noquote() << QSL("Error deleting old files in folder %1  status: %2 msg:").arg(folder).arg(error) + errorMsg + QStacker16Light();
-				return;
-			}
-		}
-		if (finished) {
+		//auto exitStatus = process.exitStatus();
+		auto error = process.error();
+		//auto state      = process.state();
+		if (error != QProcess::UnknownError) {
+			qCritical().noquote() << "error launching find process" << error << QStacker16Light();
+			process.kill();
+			process.waitForFinished(10); //quick wait only to dispatch the kill signal
 			return;
 		}
-		if (!process.waitForFinished(ms)) {
+
+		QByteArray errorMsg = process.readAllStandardError();
+		if (!errorMsg.isEmpty()) {
+			qWarning().noquote() << QSL("Error deleting old files in folder %1  error: %2 msg:").arg(folder).arg(error) + errorMsg + QStacker16Light();
+			return;
+		}
+
+		if (!finished) {
 			qDebug() << "Still deleting for " << folder << " after" << ms;
 			process.kill();
-			process.waitForFinished(100); //quick wait only to dispatch the kill signal
+			process.waitForFinished(10); //quick wait only to dispatch the kill signal
 		}
 	};
 	if (useThread) {
