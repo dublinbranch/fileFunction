@@ -345,7 +345,7 @@ std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
 		auto error = process.error();
 		//auto state      = process.state();
 		if (error != QProcess::UnknownError) {
-			qCritical().noquote() << "error launching find process" << error << QStacker16Light();
+			qWarning().noquote() << "error launching find process" << error << QStacker16Light();
 			process.kill();
 			process.waitForFinished(10); //quick wait only to dispatch the kill signal
 			return;
