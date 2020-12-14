@@ -334,18 +334,23 @@ bool filePutContents(const QString& pay, const QString& fileName) {
  * @param day
  */
 std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
+	//This is a total waste, but I need atm to properly track a problem
+	auto stack = QStacker16Light();
+
 	//wrap in a lambda, copy parameter to avoid they go out of scope
 	auto task = [=]() {
 		QProcess process;
 
 		process.start("find", {folder, "-mtime", QString::number(day), "-delete"});
+		process.waitForStarted(50);
+
 		auto finished = process.waitForFinished(ms);
 
 		//auto exitStatus = process.exitStatus();
 		auto error = process.error();
 		//auto state      = process.state();
 		if (error != QProcess::UnknownError) {
-			qWarning().noquote() << "error launching find process" << error << QStacker16Light();
+			qDebug().noquote() << "error launching find process" << error << "for " << folder << "in" << stack;
 			process.kill();
 			process.waitForFinished(10); //quick wait only to dispatch the kill signal
 			return;
