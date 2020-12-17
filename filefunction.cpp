@@ -341,8 +341,11 @@ std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
 	auto task = [=]() {
 		QProcess process;
 
-		process.start("find", {folder, "-mtime", QString::number(day), "-delete"});
+		process.start("find", {folder, "-mtime", "+" + QString::number(day), "-delete"});
 		process.waitForStarted(50);
+
+		// for debug
+		auto arg = process.arguments();
 
 		auto finished = process.waitForFinished(ms);
 
