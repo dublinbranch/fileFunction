@@ -291,6 +291,7 @@ std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separ
 			}
 			if (currentBlockStart == -1) { //a new block has never started, we have two separator in a row
 				part.push_back(empty.midRef(0, 0));
+				blockEnd = 0;
 			} else {
 				QStringRef v = line.midRef(currentBlockStart, (blockEnd - currentBlockStart));
 				blockEnd     = 0;
