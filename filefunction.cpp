@@ -362,7 +362,7 @@ std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
 
 		QByteArray errorMsg = process.readAllStandardError();
 		if (!errorMsg.isEmpty()) {
-			qWarning().noquote() << QSL("Error deleting old files in folder %1  error: %2 msg:").arg(folder).arg(error) + errorMsg + QStacker16Light();
+			qDebug().noquote() << QSL("Error deleting old files in folder %1  error: %2 msg:").arg(folder).arg(error) + errorMsg + QStacker16Light();
 			return;
 		}
 
