@@ -19,8 +19,10 @@ struct FileGetRes {
 bool       filePutContents(const QString& pay, const QString& fileName);
 bool       filePutContents(const QByteArray& pay, const QString& fileName);
 QByteArray fileGetContents(const QString& fileName, bool quiet = true);
-FileGetRes fileGetContents2(const QString& fileName, bool quiet = true);
 QByteArray fileGetContents(const QString& fileName, bool quiet, bool& success);
+
+FileGetRes fileGetContents2(const QString& fileName, bool quiet = true, uint maxAge = 0);
+
 bool       fileAppendContents(const QByteArray& pay, const QString& fileName);
 
 QByteArray sha1(const QByteArray& original, bool urlSafe = true);

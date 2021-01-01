@@ -1,6 +1,7 @@
 #include "filefunction.h"
 #include "QStacker/qstacker.h"
 #include <QCryptographicHash>
+#include <QDateTime>
 #include <QDebug>
 #include <QDir>
 #include <QProcess>
@@ -47,12 +48,17 @@ QByteArray fileGetContents(const QString& fileName, bool quiet) {
 	return x;
 }
 
-FileGetRes fileGetContents2(const QString& fileName, bool quiet) {
-	bool ok;
-
+FileGetRes fileGetContents2(const QString& fileName, bool quiet, uint maxAge) {
 	FileGetRes res;
-	res.content = fileGetContents(fileName, quiet, ok);
-	res.exist   = ok;
+	if (maxAge) {
+		auto cTime = QFileInfo(fileName).lastModified().toSecsSinceEpoch();
+		auto age   = QDateTime::currentSecsSinceEpoch() - cTime;
+		if (age > maxAge) {
+			return res;
+		}
+	}
+
+	res.content = fileGetContents(fileName, quiet, res.exist);
 
 	return res;
 }
@@ -340,9 +346,14 @@ std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
 
 	//wrap in a lambda, copy parameter to avoid they go out of scope
 	auto task = [=]() {
-		QProcess process;
-
-		process.start("find", {folder, "-mtime", "+" + QString::number(day), "-delete"});
+		QProcess    process;
+		QStringList param = {folder,
+		                     "-type",
+		                     "f",                       //only file, ignore folder
+		                     "-mtime",                   //modification time
+		                     "+" + QString::number(day), //older than
+		                     "-delete"};
+		process.start("find", param);
 		process.waitForStarted(50);
 
 		// for debug
