@@ -2,6 +2,8 @@
 
 #include <QFile>
 
+inline const QString FSDateTimeFormat = "yyyy-MM-dd_HH:mm:ss";
+
 class QFileXT : public QFile {
       public:
 	bool open(OpenMode flags) override;
@@ -23,7 +25,7 @@ QByteArray fileGetContents(const QString& fileName, bool quiet, bool& success);
 
 FileGetRes fileGetContents2(const QString& fileName, bool quiet = true, uint maxAge = 0);
 
-bool       fileAppendContents(const QByteArray& pay, const QString& fileName);
+bool fileAppendContents(const QByteArray& pay, const QString& fileName);
 
 QByteArray sha1(const QByteArray& original, bool urlSafe = true);
 QByteArray sha1(const QString& original, bool urlSafe = true);
