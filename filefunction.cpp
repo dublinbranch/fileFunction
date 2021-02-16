@@ -308,8 +308,9 @@ std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separ
 			break;
 		}
 	}
-	if (actualState == -2)
-		throw std::runtime_error("End-of-file found while inside quotes.");
+	if (actualState == -2) {
+		throw ExceptionV2("End-of-file found while inside quotes.");
+	}
 
 	return part;
 }
@@ -349,7 +350,7 @@ std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
 		QProcess    process;
 		QStringList param = {folder,
 		                     "-type",
-		                     "f",                       //only file, ignore folder
+		                     "f",                        //only file, ignore folder
 		                     "-mtime",                   //modification time
 		                     "+" + QString::number(day), //older than
 		                     "-delete"};
