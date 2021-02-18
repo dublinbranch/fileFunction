@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QProcess>
+#include <QSaveFile>
 #include <boost/tokenizer.hpp>
 #include <mutex>
 #include <sys/file.h>
@@ -20,8 +21,21 @@ bool QFileXT::open(QIODevice::OpenMode flags) {
 bool QFileXT::open(QIODevice::OpenMode flags, bool quiet) {
 	if (!QFile::open(flags)) {
 		if (!quiet) {
-			qWarning().noquote() << errorString() << "opening" << fileName() << "\n"
-			                     << QStacker16();
+			qWarning().noquote() << errorString() << "opening" << fileName();
+		}
+		return false;
+	}
+	return true;
+}
+
+bool QSaveV2::open(QIODevice::OpenMode flags) {
+	return open(flags, false);
+}
+
+bool QSaveV2::open(QIODevice::OpenMode flags, bool quiet) {
+	if (!QFile::open(flags)) {
+		if (!quiet) {
+			qWarning().noquote() << errorString() << "opening" << fileName();
 		}
 		return false;
 	}
@@ -29,7 +43,7 @@ bool QFileXT::open(QIODevice::OpenMode flags, bool quiet) {
 }
 
 bool filePutContents(const QByteArray& pay, const QString& fileName) {
-	QFileXT file;
+	QSaveFile file;
 	file.setFileName(fileName);
 	if (!file.open(QIODevice::Truncate | QIODevice::WriteOnly)) {
 		return false;
@@ -38,7 +52,7 @@ bool filePutContents(const QByteArray& pay, const QString& fileName) {
 	if (written != pay.size()) {
 		return false;
 	}
-	file.close();
+	file.commit();
 	return true;
 }
 
@@ -390,4 +404,8 @@ std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
 
 	task();
 	return nullptr;
+}
+
+bool filePutContents(const std::string& pay, const QString& fileName) {
+	return filePutContents(QByteArray::fromStdString(pay), fileName);
 }
