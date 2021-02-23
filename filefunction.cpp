@@ -323,7 +323,7 @@ std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separ
 		}
 	}
 	if (actualState == -2) {
-		throw ExceptionV2("End-of-file found while inside quotes.");
+		throw ExceptionV2("Line terminated while inside quotes.");
 	}
 
 	return part;
