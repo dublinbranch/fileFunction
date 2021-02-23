@@ -278,7 +278,7 @@ std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separ
 		if (pos >= line.length())
 			event = 4;
 		else {
-			QStringRef ch = line.midRef(pos, 1);
+			auto ch = line.mid(pos, 1);
 			pos++;
 			if (separator.contains(ch, Qt::CaseInsensitive))
 				event = 0;
