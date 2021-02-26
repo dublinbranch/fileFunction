@@ -14,6 +14,10 @@
 #define QBL(str) QByteArrayLiteral(str)
 #define QSL(str) QStringLiteral(str)
 
+QFileXT::QFileXT(const QString& file) {
+	setFileName(file);
+}
+
 bool QFileXT::open(QIODevice::OpenMode flags) {
 	return open(flags, false);
 }

@@ -7,6 +7,8 @@ inline const QString FSDateTimeFormat = "yyyy-MM-dd_HH:mm:ss";
 
 class QFileXT : public QFile {
       public:
+	QFileXT() = default;
+	QFileXT(const QString& file);
 	bool open(OpenMode flags) override;
 	bool open(OpenMode flags, bool quiet);
 };
