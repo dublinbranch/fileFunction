@@ -413,3 +413,7 @@ std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
 bool filePutContents(const std::string& pay, const QString& fileName) {
 	return filePutContents(QByteArray::fromStdString(pay), fileName);
 }
+
+bool fileAppendContents(const std::string& pay, const QString& fileName) {
+	return fileAppendContents(QByteArray::fromStdString(pay), fileName);
+}

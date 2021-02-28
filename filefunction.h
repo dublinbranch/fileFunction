@@ -37,6 +37,7 @@ QByteArray fileGetContents(const QString& fileName, bool quiet, bool& success);
 FileGetRes fileGetContents2(const QString& fileName, bool quiet = true, uint maxAge = 0);
 
 bool fileAppendContents(const QByteArray& pay, const QString& fileName);
+bool fileAppendContents(const std::string& pay, const QString& fileName);
 
 QByteArray sha1(const QByteArray& original, bool urlSafe = true);
 QByteArray sha1(const QString& original, bool urlSafe = true);
