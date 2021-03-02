@@ -1,5 +1,6 @@
 #include "filefunction.h"
 #include "QStacker/qstacker.h"
+#include "serialize.h"
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QDebug>
@@ -334,12 +335,12 @@ std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separ
 }
 
 using namespace std::literals;
-void checkFileLock(QString path) {
+void checkFileLock(QString path, uint minDelay) {
 	//check if there is another instance running...
 
 	int fd = open(path.toUtf8().data(), O_CREAT | O_RDWR, 0666);
 	if (fd == -1) {
-		qWarning() << path << "error opening";
+		qWarning() << path << "error opening" << path;
 		exit(1);
 	}
 
@@ -348,6 +349,18 @@ void checkFileLock(QString path) {
 		std::puts(msg.c_str());
 		exit(1);
 	}
+
+	auto pathTs = path + ".lastExec";
+	if (minDelay) {
+		QByteArray x;
+		auto       f = fileUnSerialize(pathTs, x, minDelay);
+		if (f.fileExists && f.valid) {
+			auto msg = QSL("file %1 is NOT locked, but is too recent, last application start was less than %2 second ago").arg(path).arg(minDelay);
+			qWarning() << msg;
+			exit(1);
+		}
+	}
+	filePutContents(pathTs, pathTs);
 }
 
 bool filePutContents(const QString& pay, const QString& fileName) {

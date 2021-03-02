@@ -37,7 +37,8 @@ UnserializeResult fileUnSerialize(QString fileName, T& t, uint maxAge = 0) {
 	auto lastEdit = QFileInfo(file).metadataChangeTime();
 	//is the file fresh enought ?
 	if (lastEdit.toSecsSinceEpoch() < QDateTime::currentSecsSinceEpoch() - maxAge) {
-		return {0, true, QDateTime(), false};
+		//no is old!
+		return {0, true, lastEdit, false};
 	}
 
 	QDataStream in(&file);

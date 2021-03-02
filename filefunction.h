@@ -61,7 +61,7 @@ QString getMostRecent(const QString pathDir, const QString& filter);
 std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separator = {","}, const QStringList& escape = {"\""});
 QVector<QByteArray>     csvExploder(QByteArray line, const char separator = 0);
 
-void checkFileLock(QString path);
+void checkFileLock(QString path, uint minDelay = 5);
 
 namespace std {
 class thread;
