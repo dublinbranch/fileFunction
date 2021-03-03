@@ -127,7 +127,7 @@ bool mkdir(const QString& dirName) {
 	QDir                         dir = QDir(dirName);
 	if (!dir.mkpath(".")) {
 		qWarning().noquote() << "impossible to create working dir" << dirName << "\n"
-		                                                                         "maybe swapTronic is running without the necessary privileges";
+																				 "maybe the program is running without the necessary privileges";
 		return false;
 	}
 	return true;
