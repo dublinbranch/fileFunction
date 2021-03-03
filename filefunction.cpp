@@ -1,6 +1,7 @@
 #include "filefunction.h"
 #include "QStacker/qstacker.h"
 #include "serialize.h"
+#include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QDebug>
@@ -127,7 +128,7 @@ bool mkdir(const QString& dirName) {
 	QDir                         dir = QDir(dirName);
 	if (!dir.mkpath(".")) {
 		qWarning().noquote() << "impossible to create working dir" << dirName << "\n"
-																				 "maybe the program is running without the necessary privileges";
+							 << "maybe" << QCoreApplication::applicationName() << "is running without the necessary privileges";
 		return false;
 	}
 	return true;
