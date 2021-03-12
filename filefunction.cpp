@@ -348,6 +348,7 @@ void checkFileLock(QString path, uint minDelay) {
 	if (flock(fd, LOCK_EX | LOCK_NB) == -1) {
 		auto msg = path.toStdString() + " is already locked, I refuse to start.\n (The application is already running.) "s;
 		std::puts(msg.c_str());
+		sleep(minDelay);
 		exit(1);
 	}
 
