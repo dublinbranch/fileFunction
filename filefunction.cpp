@@ -128,7 +128,7 @@ bool mkdir(const QString& dirName) {
 	QDir                         dir = QDir(dirName);
 	if (!dir.mkpath(".")) {
 		qWarning().noquote() << "impossible to create working dir" << dirName << "\n"
-							 << "maybe" << QCoreApplication::applicationName() << "is running without the necessary privileges";
+		                     << "maybe" << QCoreApplication::applicationName() << "is running without the necessary privileges";
 		return false;
 	}
 	return true;
@@ -346,8 +346,8 @@ void checkFileLock(QString path, uint minDelay) {
 	}
 
 	if (flock(fd, LOCK_EX | LOCK_NB) == -1) {
-		auto msg = path.toStdString() + " is already locked, I refuse to start.\n (The application is already running.) "s;
-		std::puts(msg.c_str());
+		auto msg = QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss ") + path + " is already locked, I refuse to start.\n (The application is already running.) ";
+		qDebug() << msg;
 		sleep(minDelay);
 		exit(1);
 	}
@@ -357,7 +357,7 @@ void checkFileLock(QString path, uint minDelay) {
 		QByteArray x;
 		auto       f = fileUnSerialize(pathTs, x, minDelay);
 		if (f.fileExists && f.valid) {
-			auto msg = QSL("file %1 is NOT locked, but is too recent, last application start was less than %2 second ago").arg(path).arg(minDelay);
+			auto msg = QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss ") + QSL(" file %1 is NOT locked, but is too recent, last application start was less than %2 second ago").arg(path).arg(minDelay);
 			qWarning() << msg;
 			exit(1);
 		}
