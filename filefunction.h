@@ -61,7 +61,7 @@ QString getMostRecent(const QString pathDir, const QString& filter);
 //Much slower but more flexible, is that ever used ?
 std::vector<QStringRef> readCSVRowFlexySlow(const QString& line, const QStringList& separator = {","}, const QStringList& escape = {"\""});
 //Quite fast expecially if optimizer is on
-std::vector<QStringRef> readCSVRow(const QString& line, const QChar& separator = ',', const QChar& escape = '"');
+std::vector<QStringRef> readCSVRow(const QString& line, const QChar& separator = ',', const QChar& escape = 0x0);
 
 QVector<QByteArray> csvExploder(QByteArray line, const char separator = 0);
 
