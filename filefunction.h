@@ -58,8 +58,12 @@ QString getMostRecent(const QString pathDir, const QString& filter);
 /**
   The parameter line MUST be kept alive, so the QStringRef can point to something valid
 */
-std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separator = {","}, const QStringList& escape = {"\""});
-QVector<QByteArray>     csvExploder(QByteArray line, const char separator = 0);
+//Much slower but more flexible, is that ever used ?
+std::vector<QStringRef> readCSVRowFlexySlow(const QString& line, const QStringList& separator = {","}, const QStringList& escape = {"\""});
+//Quite fast expecially if optimizer is on
+std::vector<QStringRef> readCSVRow(const QString& line, const QChar& separator = ',', const QChar& escape = '"');
+
+QVector<QByteArray> csvExploder(QByteArray line, const char separator = 0);
 
 void checkFileLock(QString path, uint minDelay = 5);
 
