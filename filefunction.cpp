@@ -437,6 +437,10 @@ std::vector<QStringRef> readCSVRowFlexySlow(const QString& line, const QStringLi
 }
 
 std::vector<QStringRef> readCSVRow(const QString& line, const QChar& separator, const QChar& escape) {
+	return readCSVRowRef(QStringRef(&line), separator, escape);
+}
+
+std::vector<QStringRef> readCSVRowRef(const QStringRef& line, const QChar& separator, const QChar& escape) {
 	std::vector<QStringRef> part;
 	if (line.isEmpty()) {
 		return part;
@@ -520,9 +524,8 @@ std::vector<QStringRef> readCSVRow(const QString& line, const QChar& separator, 
 				part.push_back(empty.midRef(0, 0));
 				blockEnd = 0;
 			} else {
-				QStringRef v = line.midRef(currentBlockStart, (blockEnd - currentBlockStart));
-				blockEnd     = 0;
-				part.push_back(v);
+				part.push_back(line.mid(currentBlockStart, (blockEnd - currentBlockStart)));
+				blockEnd          = 0;
 				currentBlockStart = -1;
 				//curentBlock.clear();
 			}
