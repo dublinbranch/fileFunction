@@ -54,8 +54,13 @@ QStringList unzippaFile(const QString& folder);
 /**
   The parameter line MUST be kept alive, so the QStringRef can point to something valid
 */
-std::vector<QStringRef> readCSVRow(const QString& line, const QStringList& separator = {","}, const QStringList& escape = {"\""});
-QVector<QByteArray>     csvExploder(QByteArray line, const char separator = 0);
+//Much slower but more flexible, is that ever used ?
+std::vector<QStringRef> readCSVRowFlexySlow(const QString& line, const QStringList& separator = {","}, const QStringList& escape = {"\""});
+//Quite fast expecially if optimizer is on
+std::vector<QStringRef> readCSVRowRef(const QStringRef &line, const QChar& separator = ',', const QChar& escape = 0x0);
+std::vector<QStringRef> readCSVRow(const QString&line, const QChar& separator = ',', const QChar& escape = 0x0);
+
+QVector<QByteArray> csvExploder(QByteArray line, const char separator = 0);
 
 void checkFileLock(QString path, uint minDelay = 5);
 
