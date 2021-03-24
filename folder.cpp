@@ -1,8 +1,8 @@
 #include "folder.h"
-#include <mutex>
-#include <QDir>
-#include <QDebug>
 #include <QCoreApplication>
+#include <QDebug>
+#include <QDir>
+#include <mutex>
 
 bool mkdir(const QString& dirName) {
 	static std::mutex            lock;
@@ -39,4 +39,24 @@ QString getMostRecent(const QString pathDir, const QString& filter) {
 		return pathDir + "/" + files.at(0);
 	}
 	return QString();
+}
+//something like /tmp/path/whatever.sql.*
+QStringList search(const QString& path) {
+	QFileInfo fInfo(path);
+	auto      dir  = fInfo.absoluteDir();
+	auto      list = dir.entryList({fInfo.fileName()}, QDir::Files);
+	for (auto& row : list) {
+		row = row.prepend(dir.path() + "/");
+	}
+	return list;
+}
+
+uint erase(const QStringList& files) {
+	uint erased = 0;
+	for (auto& file : files) {
+		if (QFile(file).remove()) {
+			erased++;
+		}
+	}
+	return erased;
 }
