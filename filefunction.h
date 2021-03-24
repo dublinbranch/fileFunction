@@ -57,8 +57,8 @@ QStringList unzippaFile(const QString& folder);
 //Much slower but more flexible, is that ever used ?
 std::vector<QStringRef> readCSVRowFlexySlow(const QString& line, const QStringList& separator = {","}, const QStringList& escape = {"\""});
 //Quite fast expecially if optimizer is on
-std::vector<QStringRef> readCSVRowRef(const QStringRef &line, const QChar& separator = ',', const QChar& escape = 0x0);
-std::vector<QStringRef> readCSVRow(const QString&line, const QChar& separator = ',', const QChar& escape = 0x0);
+std::vector<QStringRef> readCSVRowRef(const QStringRef& line, const QChar& separator = ',', const QChar& escape = 0x0);
+std::vector<QStringRef> readCSVRow(const QString& line, const QChar& separator = ',', const QChar& escape = 0x0);
 
 QVector<QByteArray> csvExploder(QByteArray line, const char separator = 0);
 
@@ -68,3 +68,7 @@ namespace std {
 class thread;
 }
 std::thread* deleter(const QString& folder, uint day, uint ms = 1000, bool useThread = false);
+
+bool softlink(const QString& source, const QString& dest, bool quiet = false);
+
+QString hardlink(const QString& source, const QString& dest, bool quiet = false);

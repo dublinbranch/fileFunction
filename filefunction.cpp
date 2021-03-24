@@ -1,5 +1,6 @@
 #include "filefunction.h"
 #include "QStacker/qstacker.h"
+#include "folder.h"
 #include "serialize.h"
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -12,7 +13,6 @@
 #include <mutex>
 #include <sys/file.h>
 #include <thread>
-#include "folder.h"
 
 #define QBL(str) QByteArrayLiteral(str)
 #define QSL(str) QStringLiteral(str)
@@ -501,4 +501,24 @@ std::vector<QStringRef> readCSVRowRef(const QStringRef& line, const QChar& separ
 	}
 
 	return part;
+}
+
+bool softlink(const QString& source, const QString& dest, bool quiet) {
+	auto res = QFile(source).link(dest);
+	if (!res && !quiet) {
+		qWarning() << QSL("error soft symlinking %1 to %2").arg(source, dest);
+	}
+	return res;
+}
+
+QString hardlink(const QString& source, const QString& dest, bool quiet) {
+	QString msg;
+	auto    fail = link(source.toUtf8().constData(), dest.toUtf8().constData());
+	if (fail == -1) {
+		msg.append(strerror(errno));
+		if (!quiet) {
+			qCritical() << QSL("error hard symlinking %1 to %2, msg is %3").arg(source, dest, msg);
+		}
+	}
+	return msg;
 }
