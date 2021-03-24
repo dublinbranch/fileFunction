@@ -12,6 +12,7 @@
 #include <mutex>
 #include <sys/file.h>
 #include <thread>
+#include "folder.h"
 
 #define QBL(str) QByteArrayLiteral(str)
 #define QSL(str) QStringLiteral(str)
@@ -122,27 +123,6 @@ QByteArray sha1(const QString& original, bool urlSafe) {
 	return sha1(original.toUtf8(), urlSafe);
 }
 
-bool mkdir(const QString& dirName) {
-	static std::mutex            lock;
-	std::scoped_lock<std::mutex> scoped(lock);
-	QDir                         dir = QDir(dirName);
-	if (!dir.mkpath(".")) {
-		qWarning().noquote() << "impossible to create working dir" << dirName << "\n"
-		                     << "maybe" << QCoreApplication::applicationName() << "is running without the necessary privileges";
-		return false;
-	}
-	return true;
-}
-
-void cleanFolder(const QString& folder) {
-	auto dir = QDir(folder);
-	dir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
-	auto files = dir.entryList();
-	for (auto file : files) {
-		dir.remove(file);
-	}
-}
-
 QStringList unzippaFile(const QString& folder) {
 	auto processedFolder = folder + "/processed";
 	auto extractedFolder = folder + "/extracted";
@@ -186,22 +166,6 @@ QStringList unzippaFile(const QString& folder) {
 		QFile::rename(old, neu);
 	}
 	return files;
-}
-
-QString getMostRecent(const QString pathDir, const QString& filter) {
-	auto dir = QDir(pathDir);
-	if (!filter.isEmpty()) {
-		QStringList filters;
-		filters << filter;
-		dir.setNameFilters(filters);
-	}
-
-	dir.setSorting(QDir::Time);
-	auto files = dir.entryList();
-	if (!files.isEmpty()) {
-		return pathDir + "/" + files.at(0);
-	}
-	return QString();
 }
 
 QString sha1QS(const QString& original, bool urlSafe) {

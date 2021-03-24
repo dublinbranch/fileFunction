@@ -1,5 +1,6 @@
 #pragma once
 
+#include "folder.h"
 #include <QFile>
 #include <QSaveFile>
 
@@ -43,17 +44,12 @@ QByteArray sha1(const QByteArray& original, bool urlSafe = true);
 QByteArray sha1(const QString& original, bool urlSafe = true);
 QString    sha1QS(const QString& original, bool urlSafe = true);
 
-bool mkdir(const QString& dirName);
-void cleanFolder(const QString& folder);
-
 /**
  * @brief unzippaFile
  * @param folder need to ONLY have the file to be extracted
  * @return
  */
 QStringList unzippaFile(const QString& folder);
-
-QString getMostRecent(const QString pathDir, const QString& filter);
 
 /**
   The parameter line MUST be kept alive, so the QStringRef can point to something valid
