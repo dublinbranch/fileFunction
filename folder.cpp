@@ -1,4 +1,5 @@
 #include "folder.h"
+#include "filefunction.h"
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
@@ -59,4 +60,16 @@ uint erase(const QStringList& files) {
 		}
 	}
 	return erased;
+}
+
+QString hardLinkFolder(const QString& source, const QString& dest, HLParam param) {
+	mkdir(dest);
+	for (auto& file : search(source)) {
+		QFileInfo s(file);
+		auto      d = dest + "/" + s.fileName();
+		if (auto res = hardlink(file, d, param); !res.isEmpty()) {
+			return res;
+		}
+	}
+	return QString();
 }

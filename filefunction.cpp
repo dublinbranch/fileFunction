@@ -1,6 +1,7 @@
 #include "filefunction.h"
 #include "QStacker/qstacker.h"
 #include "folder.h"
+#include "magicEnum/magic_enum.hpp"
 #include "serialize.h"
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -13,7 +14,6 @@
 #include <mutex>
 #include <sys/file.h>
 #include <thread>
-
 #define QBL(str) QByteArrayLiteral(str)
 #define QSL(str) QStringLiteral(str)
 
@@ -511,12 +511,17 @@ bool softlink(const QString& source, const QString& dest, bool quiet) {
 	return res;
 }
 
-QString hardlink(const QString& source, const QString& dest, bool quiet) {
+QString hardlink(const QString& source, const QString& dest, HLParam param) {
+	using namespace magic_enum::bitwise_operators;
 	QString msg;
-	auto    fail = link(source.toUtf8().constData(), dest.toUtf8().constData());
+	if ((param & HLParam::eraseOld) == HLParam::eraseOld) {
+		QFile(dest).remove();
+	}
+	auto fail = link(source.toUtf8().constData(), dest.toUtf8().constData());
 	if (fail == -1) {
 		msg.append(strerror(errno));
-		if (!quiet) {
+
+		if ((param & HLParam::quiet) == HLParam::quiet) {
 			qCritical() << QSL("error hard symlinking %1 to %2, msg is %3").arg(source, dest, msg);
 		}
 	}
