@@ -225,9 +225,9 @@ void checkFileLock(QString path, uint minDelay) {
 		QByteArray x;
 		auto       f = fileUnSerialize(pathTs, x, minDelay);
 		if (f.fileExists && f.valid) {
-			auto msg = QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss ") + QSL(" file %1 is NOT locked, but is too recent, last application start was less than %2 second ago").arg(path).arg(minDelay);
-			sleep(minDelay);
+			auto msg = QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss ") + QSL(" file %1 is NOT locked, but is too recent, last application start was less than %2 second ago (so we will wait a bit to avoid spamming)").arg(path).arg(minDelay);
 			qWarning() << msg;
+			sleep(minDelay);
 			exit(1);
 		}
 	}
