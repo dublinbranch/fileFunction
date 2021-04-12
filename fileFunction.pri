@@ -1,3 +1,5 @@
+CONFIG += object_parallel_to_source
+
 SOURCES += \
     $$PWD/filefunction.cpp \
     $$PWD/folder.cpp
