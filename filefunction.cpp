@@ -53,6 +53,7 @@ bool filePutContents(const QByteArray& pay, const QString& fileName) {
 	QSaveFile file;
 	file.setFileName(fileName);
 	if (!file.open(QIODevice::Truncate | QIODevice::WriteOnly)) {
+		[[maybe_unused]] auto error = file.error();
 		return false;
 	}
 	auto written = file.write(pay);
