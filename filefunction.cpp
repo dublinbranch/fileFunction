@@ -159,12 +159,12 @@ QStringList unzippaFile(const QString& folder) {
 	files = dir.entryList(QStringList("*"), QDir::Files | QDir::NoDotAndDotDot);
 	for (auto&& file : files) {
 		//move in extracted and update path
-		auto old = folder + "/" + file;
-		auto neu = file = extractedFolder + "/" + file;
+		auto old2 = folder + "/" + file;
+		auto neu2 = file = extractedFolder + "/" + file;
 		if (QFile::exists(neu)) {
 			QFile::remove(neu);
 		}
-		QFile::rename(old, neu);
+		QFile::rename(old2, neu2);
 	}
 	return files;
 }
@@ -493,7 +493,6 @@ std::vector<QStringRef> readCSVRowRef(const QStringRef& line, const QChar& separ
 				part.push_back(line.mid(currentBlockStart, (blockEnd - currentBlockStart)));
 				blockEnd          = 0;
 				currentBlockStart = -1;
-				//curentBlock.clear();
 			}
 			break;
 		}
