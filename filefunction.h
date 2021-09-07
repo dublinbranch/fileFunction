@@ -1,9 +1,9 @@
 #pragma once
 
+#include "ffCommon.h"
 #include "folder.h"
 #include <QFile>
 #include <QSaveFile>
-#include "ffCommon.h"
 
 inline const QString FSDateTimeFormat = "yyyy-MM-dd_HH:mm:ss";
 
@@ -29,9 +29,15 @@ struct FileGetRes {
 	bool       exist = false;
 };
 
-bool filePutContents(const QString& pay, const QString& fileName);
-bool filePutContents(const QByteArray& pay, const QString& fileName);
-bool filePutContents(const std::string& pay, const QString& fileName);
+struct FPCRes {
+	bool                   ok;
+	QFileDevice::FileError error = QFileDevice::FileError::NoError;
+	operator bool();
+};
+
+FPCRes filePutContents(const QString& pay, const QString& fileName);
+FPCRes filePutContents(const QByteArray& pay, const QString& fileName);
+FPCRes filePutContents(const std::string& pay, const QString& fileName);
 
 QByteArray fileGetContents(const QString& fileName, bool quiet = true);
 QByteArray fileGetContents(const QString& fileName, bool quiet, bool& success);
@@ -71,7 +77,6 @@ class thread;
 std::thread* deleter(const QString& folder, uint day, uint ms = 1000, bool useThread = false);
 
 bool softlink(const QString& source, const QString& dest, bool quiet = false);
-
 
 //using namespace magic_enum::bitwise_operators;
 // HLParam::quiet | HLParam::eraseOld

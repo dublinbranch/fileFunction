@@ -49,19 +49,18 @@ bool QSaveV2::open(QIODevice::OpenMode flags, bool quiet) {
 	return true;
 }
 
-bool filePutContents(const QByteArray& pay, const QString& fileName) {
+FPCRes filePutContents(const QByteArray& pay, const QString& fileName) {
 	QSaveFile file;
 	file.setFileName(fileName);
 	if (!file.open(QIODevice::Truncate | QIODevice::WriteOnly)) {
-		[[maybe_unused]] auto error = file.error();
-		return false;
+		return {false, file.error()};
 	}
 	auto written = file.write(pay);
 	if (written != pay.size()) {
-		return false;
+		return {false, file.error()};
 	}
 	file.commit();
-	return true;
+	return {true};
 }
 
 QByteArray fileGetContents(const QString& fileName, bool quiet) {
@@ -235,7 +234,7 @@ void checkFileLock(QString path, uint minDelay) {
 	filePutContents(pathTs, pathTs);
 }
 
-bool filePutContents(const QString& pay, const QString& fileName) {
+FPCRes filePutContents(const QString& pay, const QString& fileName) {
 	return filePutContents(pay.toUtf8(), fileName);
 }
 /**
@@ -295,7 +294,7 @@ std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
 	return nullptr;
 }
 
-bool filePutContents(const std::string& pay, const QString& fileName) {
+FPCRes filePutContents(const std::string& pay, const QString& fileName) {
 	return filePutContents(QByteArray::fromStdString(pay), fileName);
 }
 
@@ -527,4 +526,8 @@ QString hardlink(const QString& source, const QString& dest, HLParam param) {
 		}
 	}
 	return msg;
+}
+
+FPCRes::operator bool() {
+	return ok;
 }
