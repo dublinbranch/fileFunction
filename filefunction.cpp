@@ -194,7 +194,8 @@ QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 		Tokenizer tok(cry, sep);
 		vec2.assign(tok.begin(), tok.end());
 	} catch (...) {
-		qWarning().noquote() << "error decoding csv line " << line;
+		//qWarning().noquote() << "error decoding csv line " << line;
+		return final;
 	}
 	//Cry
 	for (auto&& l : vec2) {
