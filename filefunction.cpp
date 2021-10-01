@@ -2,6 +2,7 @@
 #include "QStacker/qstacker.h"
 #include "folder.h"
 #include "magicEnum/magic_enum.hpp"
+#include "minMysql/min_mysql.h"
 #include "serialize.h"
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -14,6 +15,7 @@
 #include <mutex>
 #include <sys/file.h>
 #include <thread>
+
 #define QBL(str) QByteArrayLiteral(str)
 #define QSL(str) QStringLiteral(str)
 
@@ -531,4 +533,13 @@ QString hardlink(const QString& source, const QString& dest, HLParam param) {
 
 FPCRes::operator bool() {
 	return ok;
+}
+
+// for debug
+void logWithTime(QString logFile, QString msg) {
+	auto now    = QDateTime::currentDateTimeUtc().toString(mysqlDateTimeFormat);
+	auto logMsg = QSL("%1 UTC\n%2\n")
+					  .arg(now)
+					  .arg(msg);
+	fileAppendContents(logMsg.toUtf8(), logFile);
 }

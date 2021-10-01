@@ -81,3 +81,5 @@ bool softlink(const QString& source, const QString& dest, bool quiet = false);
 //using namespace magic_enum::bitwise_operators;
 // HLParam::quiet | HLParam::eraseOld
 QString hardlink(const QString& source, const QString& dest, HLParam param = HLParam::eraseOld);
+
+void logWithTime(QString logFile, QString msg);
