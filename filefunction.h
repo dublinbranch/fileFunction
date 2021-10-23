@@ -51,12 +51,7 @@ QByteArray sha1(const QByteArray& original, bool urlSafe = true);
 QByteArray sha1(const QString& original, bool urlSafe = true);
 QString    sha1QS(const QString& original, bool urlSafe = true);
 
-/**
- * @brief unzippaFile
- * @param folder need to ONLY have the file to be extracted
- * @return
- */
-QStringList unzippaFile(const QString& folder);
+QByteArray unzip1(QByteArray zipped);
 
 /**
   The parameter line MUST be kept alive, so the QStringRef can point to something valid
@@ -70,11 +65,6 @@ std::vector<QStringRef> readCSVRow(const QString& line, const QChar& separator =
 QVector<QByteArray> csvExploder(QByteArray line, const char separator = 0);
 
 void checkFileLock(QString path, uint minDelay = 5);
-
-namespace std {
-class thread;
-}
-std::thread* deleter(const QString& folder, uint day, uint ms = 1000, bool useThread = false);
 
 bool softlink(const QString& source, const QString& dest, bool quiet = false);
 

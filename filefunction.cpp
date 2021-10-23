@@ -9,12 +9,11 @@
 #include <QDateTime>
 #include <QDebug>
 #include <QDir>
-#include <QProcess>
 #include <QSaveFile>
 #include <boost/tokenizer.hpp>
 #include <mutex>
 #include <sys/file.h>
-#include <thread>
+#include <zip.h>
 
 #define QBL(str) QByteArrayLiteral(str)
 #define QSL(str) QStringLiteral(str)
@@ -125,49 +124,44 @@ QByteArray sha1(const QString& original, bool urlSafe) {
 	return sha1(original.toUtf8(), urlSafe);
 }
 
-QStringList unzippaFile(const QString& folder) {
-	auto processedFolder = folder + "/processed";
-	auto extractedFolder = folder + "/extracted";
-	mkdir(processedFolder);
-	mkdir(extractedFolder);
+// returns the (unzipped) content of a zipped file.
+// zipped = content of the zipped file
+QByteArray unzip1(QByteArray zipped) {
+	zip_error_t error;
+	zip_error_init(&error);
+	auto            src = zip_source_buffer_create(zipped, zipped.size(), 1, &error);
+	auto            za  = zip_open_from_source(src, 0, &error);
+	struct zip_stat sb;
+	for (int i = 0; i < zip_get_num_entries(za, 0); i++) {
+		if (zip_stat_index(za, i, 0, &sb) == 0) {
+			//			printf("==================\n");
+			//			auto len = strlen(sb.name);
+			//			printf("Name: %s\n, ", sb.name);
+			//			printf("Size: %lu\n, ", sb.size);
+			//			printf("mtime: %u\n", (unsigned int)sb.mtime);
+			//			fflush( stdout );
+			auto zf = zip_fopen_index(za, i, 0);
+			if (!zf) {
+				qCritical().noquote() << "error iterating zip file" << QStacker16();
+				return QByteArray();
+			}
 
-	//verify there are only zip file in this folder
-	auto dir   = QDir(folder);
-	auto files = dir.entryList(QStringList("*"), QDir::Files | QDir::NoDotAndDotDot);
-	if (files.size() > 1) {
-		throw QString("the folder %1 has more than 1 file!").arg(folder);
-	}
-
-	const QString program = "unzip";
-	//const QStringList arguments = QStringList() << file;
-	QProcess process;
-	process.setWorkingDirectory(folder);
-	process.start(program, files);
-	process.waitForFinished(10000); //10 sec
-
-	//move away the zip
-	auto old = folder + "/" + files.at(0);
-	auto neu = processedFolder + "/" + files.at(0);
-	if (QFile::exists(neu)) {
-		QFile::remove(neu);
-	}
-
-	if (!QFile::rename(old, neu)) {
-		qWarning().noquote() << "impossible spostare";
-	}
-
-	//rescan directory for extracted file
-	files = dir.entryList(QStringList("*"), QDir::Files | QDir::NoDotAndDotDot);
-	for (auto&& file : files) {
-		//move in extracted and update path
-		auto old2 = folder + "/" + file;
-		auto neu2 = file = extractedFolder + "/" + file;
-		if (QFile::exists(neu)) {
-			QFile::remove(neu);
+			QByteArray decompressed;
+			decompressed.resize(sb.size);
+			auto len = zip_fread(zf, decompressed.data(), sb.size);
+			if (len < 0) {
+				qCritical().noquote() << "error decompressing zip file" << QStacker16();
+				return QByteArray();
+			}
+			zip_fclose(zf);
+			// nothing to free as the lib is buggy and tries to deallocate the
+			// original buffer -.-
+			return decompressed;
 		}
-		QFile::rename(old2, neu2);
 	}
-	return files;
+	// some error
+	qDebug().noquote() << "something strange with that zip file" << QStacker16();
+	return QByteArray();
 }
 
 QString sha1QS(const QString& original, bool urlSafe) {
@@ -239,62 +233,6 @@ void checkFileLock(QString path, uint minDelay) {
 
 FPCRes filePutContents(const QString& pay, const QString& fileName) {
 	return filePutContents(pay.toUtf8(), fileName);
-}
-/**
- * @brief deleter
- * @param folder
- * @param filter
- * @param day
- */
-std::thread* deleter(const QString& folder, uint day, uint ms, bool useThread) {
-	//This is a total waste, but I need atm to properly track a problem
-	auto stack = QStacker16Light();
-
-	//wrap in a lambda, copy parameter to avoid they go out of scope
-	auto task = [=]() {
-		QProcess    process;
-		QStringList param = {folder,
-		                     "-type",
-		                     "f",                        //only file, ignore folder
-		                     "-mtime",                   //modification time
-		                     "+" + QString::number(day), //older than
-		                     "-delete"};
-		process.start("find", param);
-		process.waitForStarted(50);
-
-		// for debug
-		auto arg = process.arguments();
-
-		auto finished = process.waitForFinished(ms);
-
-		//auto exitStatus = process.exitStatus();
-		auto error = process.error();
-		//auto state      = process.state();
-		if (error != QProcess::UnknownError) {
-			qDebug().noquote() << "error launching find process" << error << "for " << folder << "in" << stack;
-			process.kill();
-			process.waitForFinished(10); //quick wait only to dispatch the kill signal
-			return;
-		}
-
-		QByteArray errorMsg = process.readAllStandardError();
-		if (!errorMsg.isEmpty()) {
-			qDebug().noquote() << QSL("Error deleting old files in folder %1  error: %2 msg:").arg(folder).arg(error) + errorMsg + QStacker16Light();
-			return;
-		}
-
-		if (!finished) {
-			qDebug() << "Still deleting for " << folder << " after" << ms;
-			process.kill();
-			process.waitForFinished(10); //quick wait only to dispatch the kill signal
-		}
-	};
-	if (useThread) {
-		return new std::thread(task);
-	}
-
-	task();
-	return nullptr;
 }
 
 FPCRes filePutContents(const std::string& pay, const QString& fileName) {
@@ -539,6 +477,6 @@ FPCRes::operator bool() {
 void logWithTime(QString logFile, QString msg) {
 	auto now    = QDateTime::currentDateTimeUtc().toString(mysqlDateTimeFormat);
 	auto logMsg = QSL("%1 UTC\n%2\n")
-					  .arg(now,msg);
+	                  .arg(now, msg);
 	fileAppendContents(logMsg.toUtf8(), logFile);
 }
