@@ -53,6 +53,7 @@ bool QSaveV2::open(QIODevice::OpenMode flags, bool quiet) {
 FPCRes filePutContents(const QByteArray& pay, const QString& fileName) {
 	QSaveFile file;
 	file.setFileName(fileName);
+	// TODO nel caso il file non sia scribile (di un altro utente) ritorna un vaghissimo WriteError, indicare se possibile meglio!
 	if (!file.open(QIODevice::Truncate | QIODevice::WriteOnly)) {
 		return {false, file.error()};
 	}
@@ -169,14 +170,14 @@ QString sha1QS(const QString& original, bool urlSafe) {
 }
 
 QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
-	//The csv we receive is trash sometimes
+	// The csv we receive is trash sometimes
 	line.replace(QBL("\r"), QByteArray());
 	line.replace(QBL("\n"), QByteArray());
-	//Not only we can receive a new line symbol, we can receive the two character \r or \n o.O
+	// Not only we can receive a new line symbol, we can receive the two character \r or \n o.O
 	line.replace(QBL("\\r"), QByteArray());
 	line.replace(QBL("\\n"), QByteArray());
 
-	//https://www.boost.org/doc/libs/1_71_0/libs/tokenizer/doc/char_separator.htm
+	// https://www.boost.org/doc/libs/1_71_0/libs/tokenizer/doc/char_separator.htm
 	using Tokenizer = boost::tokenizer<boost::escaped_list_separator<char>>;
 	boost::escaped_list_separator<char> sep('\\', ',', '\"');
 	if (separator) {
@@ -190,10 +191,10 @@ QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 		Tokenizer tok(cry, sep);
 		vec2.assign(tok.begin(), tok.end());
 	} catch (...) {
-		//qWarning().noquote() << "error decoding csv line " << line;
+		// qWarning().noquote() << "error decoding csv line " << line;
 		return final;
 	}
-	//Cry
+	// Cry
 	for (auto&& l : vec2) {
 		final.append(QByteArray::fromStdString(l));
 	}
@@ -202,7 +203,7 @@ QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 
 using namespace std::literals;
 void checkFileLock(QString path, uint minDelay) {
-	//check if there is another instance running...
+	// check if there is another instance running...
 
 	int fd = open(path.toUtf8().data(), O_CREAT | O_RDWR, 0666);
 	if (fd == -1) {
@@ -243,16 +244,16 @@ bool fileAppendContents(const std::string& pay, const QString& fileName) {
 	return fileAppendContents(QByteArray::fromStdString(pay), fileName);
 }
 
-//Much slower but more flexible, is that ever used ?
+// Much slower but more flexible, is that ever used ?
 std::vector<QStringRef> readCSVRowFlexySlow(const QString& line, const QStringList& separator, const QStringList& escape) {
 	std::vector<QStringRef> part;
 	if (line.isEmpty()) {
 		return part;
 	}
 	part.reserve(10);
-	//Quando si ESCE dal quote, non avanzare di pos, altrimenti diventa "ciao" -> ciao"
-	//questo innesca il problema che se vi è ad esempio ciao,"miao""bau",altro
-	//invece di avere ciao, miaobau, altro non funge perché il range NON é CONTIGUO -.-, ma viene ritornato ad esempio ciao, miao, bau, altro
+	// Quando si ESCE dal quote, non avanzare di pos, altrimenti diventa "ciao" -> ciao"
+	// questo innesca il problema che se vi è ad esempio ciao,"miao""bau",altro
+	// invece di avere ciao, miaobau, altro non funge perché il range NON é CONTIGUO -.-, ma viene ritornato ad esempio ciao, miao, bau, altro
 
 	// newState = delta[currentState][event]
 
@@ -322,7 +323,7 @@ std::vector<QStringRef> readCSVRowFlexySlow(const QString& line, const QStringLi
 			if (!blockEnd) {
 				blockEnd = pos - 1;
 			}
-			if (currentBlockStart == -1) { //a new block has never started, we have two separator in a row
+			if (currentBlockStart == -1) { // a new block has never started, we have two separator in a row
 				part.push_back(empty.midRef(0, 0));
 				blockEnd = 0;
 			} else {
@@ -330,7 +331,7 @@ std::vector<QStringRef> readCSVRowFlexySlow(const QString& line, const QStringLi
 				blockEnd     = 0;
 				part.push_back(v);
 				currentBlockStart = -1;
-				//curentBlock.clear();
+				// curentBlock.clear();
 			}
 			break;
 		}
@@ -352,9 +353,9 @@ std::vector<QStringRef> readCSVRowRef(const QStringRef& line, const QChar& separ
 		return part;
 	}
 	part.reserve(10);
-	//Quando si ESCE dal quote, non avanzare di pos, altrimenti diventa "ciao" -> ciao"
-	//questo innesca il problema che se vi è ad esempio ciao,"miao""bau",altro
-	//invece di avere ciao, miaobau, altro non funge perché il range NON é CONTIGUO -.-, ma viene ritornato ad esempio ciao, miao, bau, altro
+	// Quando si ESCE dal quote, non avanzare di pos, altrimenti diventa "ciao" -> ciao"
+	// questo innesca il problema che se vi è ad esempio ciao,"miao""bau",altro
+	// invece di avere ciao, miaobau, altro non funge perché il range NON é CONTIGUO -.-, ma viene ritornato ad esempio ciao, miao, bau, altro
 
 	// newState = delta[currentState][event]
 
@@ -426,7 +427,7 @@ std::vector<QStringRef> readCSVRowRef(const QStringRef& line, const QChar& separ
 			if (!blockEnd) {
 				blockEnd = pos - 1;
 			}
-			if (currentBlockStart == -1) { //a new block has never started, we have two separator in a row
+			if (currentBlockStart == -1) { // a new block has never started, we have two separator in a row
 				part.push_back(empty.midRef(0, 0));
 				blockEnd = 0;
 			} else {
