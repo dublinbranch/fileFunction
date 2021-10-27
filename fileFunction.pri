@@ -10,3 +10,5 @@ HEADERS += \
 	$$PWD/folder.h \
 	$$PWD/serialize.h
 
+#zypper in libzip-devel
+LIBS += -lzip
