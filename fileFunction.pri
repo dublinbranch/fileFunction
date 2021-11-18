@@ -2,6 +2,7 @@ CONFIG += object_parallel_to_source
 
 SOURCES += \
     $$PWD/apcu2.cpp \
+    $$PWD/apcuTest.cpp \
     $$PWD/apcuinclude.cpp \
     $$PWD/filefunction.cpp \
     $$PWD/folder.cpp
