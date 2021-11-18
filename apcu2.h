@@ -9,9 +9,9 @@
 #include <any>
 #include <memory>
 #include <mutex>
-#include <typeinfo>
 
 #define QSL(str) QStringLiteral(str)
+void throwTypeError(const std::type_info* found, const std::type_info* expected);
 
 using namespace std;
 
@@ -37,72 +37,100 @@ class APCU : private NonCopyable {
 	bool exists(const QString& key, bool lock = true);
 
 	/**
-	 * @brief apcuStore will OVERWRITE IF IS FOUND
+	 * @brief store will OVERWRITE IF IS FOUND
 	 * @param key
 	 * @param obj
 	 * @param ttl
 	 */
+	//	template <class T>
+	//	void store(const QString& key, T& obj, int ttl = 60, bool lock = true) {
+	//		auto copy = make_shared<T>(obj);
+	//		store(key, copy, ttl, lock);
+	//	}
+
+	///void store(const QString& key, shared_ptr<void>& obj, const std::type_info* type, void* _dtor, int ttl = 60, bool lock = true);
+
 	template <class T>
-	void store(const QString& key, T& obj, int ttl = 60, bool lock = true) {
-		auto copy = make_shared<T>(obj);
-		store(key, copy, ttl, lock);
+	std::shared_ptr<T> fetch(const QString& key) {
+		//		auto res = fetch(key, &typeid(T));
+		//		if (res) {
+		//			return static_pointer_cast<T>(res);
+		//		}
+		//		return nullptr;
+
+		CacheType::iterator iter;
+		if (exists(key, true, iter)) {
+			auto& ref = iter->second;
+			return any_cast<shared_ptr<T>>(ref.obj2);
+		}
+		return nullptr;
 	}
 
 	//If you pass a shared ptr, it will not deep copy it
 	//passing a * is wild and will not be tollerated instead
 	template <class T>
 	void store(const QString& key, shared_ptr<T>& obj, int ttl = 60, bool lock = true) {
+
+		auto        v = Value(obj, ttl);
 		LockGuardV2 scoped(&innerLock, lock);
 
 		if (auto iter = cache.find(key); iter != cache.end()) {
-			iter->second = Value(obj, ttl);
+			iter->second = move(v);
 		} else {
-			cache[key] = {obj, ttl};
+			cache[key] = move(v);
 		}
+
+		//store(key, copy, type, ttl, lock);
 	}
 
-	template <class T>
-	std::shared_ptr<T> apcuFetch(const QString& key) {
+	std::shared_ptr<void> fetch(const QString& key, const std::type_info* type) {
 		CacheType::iterator iter;
-		if (exists(key, false, iter)) {
+		if (exists(key, true, iter)) {
 			auto& ref = iter->second;
-			if (ref.isSameType<T>()) {
-				return static_pointer_cast<T>(ref.obj);
+			if (ref.isSameType(type)) {
+				return ref.obj;
 			} else {
-				throwTypeError(ref.type, &typeid(T));
+				throwTypeError(ref.type, type);
 			}
-		} else {
-			return nullptr;
 		}
+		return nullptr;
 	}
+
+	void clear();
 
       private:
 	std::mutex innerLock;
 
-	void throwTypeError(const std::type_info* found, const std::type_info* expected);
 	struct Value {
+		any              obj2;
 		shared_ptr<void> obj = nullptr;
 		//I could have used std::any but at this point is just cumbersome
 		//https://en.cppreference.com/w/cpp/language/typeid
 		const std::type_info* type     = nullptr;
-		int                   expireAt = 0;
+		qint64                expireAt = 0;
+		//Ptr to the obj destructor, as we can not share easily the type AFAIK
+		void* dtor = nullptr;
+		~Value() {
+		}
 		//Value()                        = delete;
 		Value() {
 			int x = 0;
 		}
+		//Value(shared_ptr<void>& _obj, int ttl, const std::type_info* _type, void* _dtor);
+
 		template <class T>
 		Value(shared_ptr<T>& obj, int ttl) {
-			this->obj = (shared_ptr<void>)obj;
-			type      = &typeid(T);
-			expireAt  = QDateTime::currentSecsSinceEpoch() + ttl;
+			//this->obj = static_pointer_cast<void>(obj);
+			obj2     = obj;
+			type     = &typeid(T);
+			expireAt = QDateTime::currentSecsSinceEpoch() + ttl;
 		}
+
 		template <class T>
 		Value(T& obj, int ttl) {
-			auto             copy = make_shared<T>(obj);
-			shared_ptr<void> obj2 = (shared_ptr<void>)copy;
-			this->obj             = obj2;
-			type                  = &typeid(T);
-			expireAt              = QDateTime::currentSecsSinceEpoch() + ttl;
+			this->obj = static_pointer_cast<void>(make_shared<T>(obj));
+			type      = &typeid(T);
+			expireAt  = QDateTime::currentSecsSinceEpoch() + ttl;
 		}
 		bool expired() const {
 			return QDateTime::currentSecsSinceEpoch() > expireAt;
@@ -110,6 +138,9 @@ class APCU : private NonCopyable {
 		template <class T>
 		bool isSameType() const {
 			return type->hash_code() == typeid(T).hash_code();
+		}
+		bool isSameType(const std::type_info* target) const {
+			return type->hash_code() == target->hash_code();
 		}
 	};
 
