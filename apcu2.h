@@ -71,7 +71,8 @@ class APCU : private NonCopyable {
 	}
 
 	void clear();
-
+	
+	
 	//1 overwrite will NOT trigger 1 delete and 1 inserted
 	std::atomic<uint64_t> overwite;
 	std::atomic<uint64_t> insert;

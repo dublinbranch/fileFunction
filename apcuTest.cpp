@@ -57,7 +57,7 @@ int apcuTest() {
 		thread r5(reader);
 		thread r6(reader);
 
-		sleep(1);
+		
 		qDebug().noquote() << a->info();
 		//t1.join();
 		//t2.join();
