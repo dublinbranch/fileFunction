@@ -1,19 +1,17 @@
-//You are not supposed to include this header! NO!
+#pragma once
 
 #include "QStacker/exceptionv2.h"
-#include "mapExtensor/hmap.h"
-#include "mapExtensor/lockguardv2.h"
+#include "mapExtensor/rwguard.h"
 #include <QDateTime>
 #include <QHash>
 #include <QString>
 #include <any>
 #include <memory>
-#include <mutex>
+#include <shared_mutex>
+#include <unordered_map>
 
 #define QSL(str) QStringLiteral(str)
 void throwTypeError(const std::type_info* found, const std::type_info* expected);
-
-using namespace std;
 
 class NonCopyable {
       protected:
@@ -26,15 +24,31 @@ class NonCopyable {
 
 class APCU : private NonCopyable {
       public:
-	static APCU* get() {
-		static APCU* instance = nullptr;
-		if (!instance) {
-			instance = new APCU();
-		}
-		return instance;
-	}
+	static APCU* get();
 
-	bool exists(const QString& key, bool lock = true);
+	template <class T>
+	std::shared_ptr<T> fetch(const QString& key) {
+		CacheType::iterator iter;
+		//we need to keep the lock, so we can copy the shared, to avoid it goes out scope while in our hands!
+		RWGuard scoped(&innerLock);
+		scoped.lockShared();
+
+		if (iter = cache.find(key); iter != cache.end()) {
+			if (iter->second.expired()) {
+				//https://en.cppreference.com/w/cpp/thread/shared_mutex/lock
+				scoped.unlock(); //promote to a stronger lock
+				scoped.lock();
+				cache.erase(iter);
+				deleted++;
+				return nullptr;
+			}
+			hits++;
+			return any_cast<std::shared_ptr<T>>(iter->second.obj);
+		}
+		miss++;
+		return nullptr;
+	}
+	QString info() const;
 
 	/**
 	 * @brief store will OVERWRITE IF IS FOUND
@@ -42,129 +56,93 @@ class APCU : private NonCopyable {
 	 * @param obj
 	 * @param ttl
 	 */
-	//	template <class T>
-	//	void store(const QString& key, T& obj, int ttl = 60, bool lock = true) {
-	//		auto copy = make_shared<T>(obj);
-	//		store(key, copy, ttl, lock);
-	//	}
-
-	///void store(const QString& key, shared_ptr<void>& obj, const std::type_info* type, void* _dtor, int ttl = 60, bool lock = true);
-
 	template <class T>
-	std::shared_ptr<T> fetch(const QString& key) {
-		//		auto res = fetch(key, &typeid(T));
-		//		if (res) {
-		//			return static_pointer_cast<T>(res);
-		//		}
-		//		return nullptr;
-
-		CacheType::iterator iter;
-		if (exists(key, true, iter)) {
-			auto& ref = iter->second;
-			return any_cast<shared_ptr<T>>(ref.obj2);
-		}
-		return nullptr;
-	}
-
-	//If you pass a shared ptr, it will not deep copy it
-	//passing a * is wild and will not be tollerated instead
-	template <class T>
-	void store(const QString& key, shared_ptr<T>& obj, int ttl = 60, bool lock = true) {
-
-		auto        v = Value(obj, ttl);
-		LockGuardV2 scoped(&innerLock, lock);
-
+	void store(const QString& key, std::shared_ptr<T>& obj, int ttl = 60) {
+		auto    v = Value(obj, ttl);
+		RWGuard scoped(&innerLock);
+		scoped.lock();
 		if (auto iter = cache.find(key); iter != cache.end()) {
-			iter->second = move(v);
+			overwite++;
+			iter->second = std::move(v);
 		} else {
-			cache[key] = move(v);
+			insert++;
+			cache.emplace(key, std::move(v));
 		}
-
-		//store(key, copy, type, ttl, lock);
-	}
-
-	std::shared_ptr<void> fetch(const QString& key, const std::type_info* type) {
-		CacheType::iterator iter;
-		if (exists(key, true, iter)) {
-			auto& ref = iter->second;
-			if (ref.isSameType(type)) {
-				return ref.obj;
-			} else {
-				throwTypeError(ref.type, type);
-			}
-		}
-		return nullptr;
 	}
 
 	void clear();
 
+	//1 overwrite will NOT trigger 1 delete and 1 inserted
+	std::atomic<uint64_t> overwite;
+	std::atomic<uint64_t> insert;
+	std::atomic<uint64_t> deleted;
+	std::atomic<uint64_t> hits;
+	std::atomic<uint64_t> miss;
+
       private:
-	std::mutex innerLock;
+	void              garbageCollector_F1();
+	void              garbageCollector_F2();
+	std::shared_mutex innerLock;
+	qint64            startedAt = 0;
+
+	APCU();
 
 	struct Value {
-		any              obj2;
-		shared_ptr<void> obj = nullptr;
-		//I could have used std::any but at this point is just cumbersome
-		//https://en.cppreference.com/w/cpp/language/typeid
-		const std::type_info* type     = nullptr;
-		qint64                expireAt = 0;
-		//Ptr to the obj destructor, as we can not share easily the type AFAIK
-		void* dtor = nullptr;
-		~Value() {
-		}
-		//Value()                        = delete;
-		Value() {
-			int x = 0;
-		}
-		//Value(shared_ptr<void>& _obj, int ttl, const std::type_info* _type, void* _dtor);
-
+		std::any obj;
+		qint64   expireAt = 0;
+		Value()           = delete;
 		template <class T>
-		Value(shared_ptr<T>& obj, int ttl) {
-			//this->obj = static_pointer_cast<void>(obj);
-			obj2     = obj;
-			type     = &typeid(T);
+		Value(std::shared_ptr<T>& _obj, int ttl) {
+			obj      = _obj;
 			expireAt = QDateTime::currentSecsSinceEpoch() + ttl;
 		}
-
-		template <class T>
-		Value(T& obj, int ttl) {
-			this->obj = static_pointer_cast<void>(make_shared<T>(obj));
-			type      = &typeid(T);
-			expireAt  = QDateTime::currentSecsSinceEpoch() + ttl;
-		}
-		bool expired() const {
-			return QDateTime::currentSecsSinceEpoch() > expireAt;
-		}
-		template <class T>
-		bool isSameType() const {
-			return type->hash_code() == typeid(T).hash_code();
-		}
-		bool isSameType(const std::type_info* target) const {
-			return type->hash_code() == target->hash_code();
-		}
+		bool expired() const;
+		bool expired(qint64 ts) const;
 	};
 
-	using CacheType = hmap<QString, Value>;
+	using CacheType = std::unordered_map<QString, Value>;
 	CacheType cache;
 
-	bool exists(const QString& key, bool lock, CacheType::iterator& iter);
-
-	/**
-	 * @brief apcuTryStore
-	 * @param key
-	 * @param obj
-	 * @param ttl
-	 * @return if we inserted (there was NONE or EXPIRED) or not
-	 */
-	template <class T>
-	bool tryStore(const QString& key, T& obj, int ttl = 60) {
-		CacheType::iterator         iter;
-		std::lock_guard<std::mutex> scoped(innerLock);
-		if (exists(key, false, iter)) {
-			return true;
-		} else {
-			iter->second = Value(obj, ttl);
-			return false;
-		}
-	}
+	//	/**
+	//	 * @brief apcuTryStore
+	//	 * @param key
+	//	 * @param obj
+	//	 * @param ttl
+	//	 * @return if we inserted (there was NONE or EXPIRED) or not
+	//	 */
+	//	template <class T>
+	//	bool tryStore(const QString& key, T& obj, int ttl = 60) {
+	//		CacheType::iterator         iter;
+	//		std::lock_guard<std::mutex> scoped(innerLock);
+	//		if (exists(key, false, iter)) {
+	//			return true;
+	//		} else {
+	//			iter->second = Value(obj, ttl);
+	//			return false;
+	//		}
+	//	}
 };
+
+template <class T>
+void apcuStore(const QString& key, std::shared_ptr<T>& obj, int ttl = 60) {
+	auto a = APCU::get();
+	a->store(key, obj, ttl);
+}
+
+template <class T>
+void apcuStore(const QString& key, T& obj, int ttl = 60) {
+	auto copy = make_shared<T>(obj);
+	apcuStore(key, copy, ttl);
+}
+
+template <class T>
+std::shared_ptr<T> apcuFetch(const QString& key) {
+	auto a   = APCU::get();
+	auto res = a->fetch<T>(key);
+	if (res) {
+		return static_pointer_cast<T>(res);
+	}
+	return nullptr;
+}
+void apcuClear();
+int  apcuTest();

@@ -1,13 +1,11 @@
 #include "fileFunction/apcu2.h"
-
+#include <QDebug>
+#include <thread>
 using namespace std;
 struct M {
 	QString k;
 	double  v = 0;
 	//mutex   rowLock;
-	~M() {
-		int x = 0;
-	}
 };
 struct T {
 	QString k;
@@ -15,32 +13,67 @@ struct T {
 	mutex   rowLock;
 };
 
-int apcuTest() {
-	{
-
-		any m2 = M({"ciao", 3});
-	}
+void spammer1() {
 	auto a = APCU::get();
 
 	auto m = make_shared<M>();
 	m->v   = 123.456;
 	m->k   = "ciao";
 
-	for (int i = 0; i < 1000; i++) {
-		QString key = QString("k1 %1").arg(i);
-		a->store(key, m);
-
-		//apcuStore(key, m, 3600);
+	for (int i = 0; i < 500000; i++) {
+		a->store(QSL("k1 %1").arg(random() % (1024 * 1024 * 1024)), m, 1);
 	}
+}
 
-	auto c1  = a->fetch<M>("k1 1");
-	c1->v    = 4;
-	c1->k    = "miao";
-	auto c11 = a->fetch<M>("k1 1");
-	auto c2  = a->fetch<M>("k1 2");
-	//	auto c2 = apcuFetch<M>(key);
-	//	c2->k   = "prova1";
-	//	auto c3 = apcuFetch<M>(key);
+uint found = 0;
 
+void reader() {
+	auto a = APCU::get();
+
+	for (int i = 0; i < 500000; i++) {
+		auto v = a->fetch<M>(QSL("k1 %1").arg(random() % 1024 * 1024 * 1024));
+		if (v) {
+			found++;
+		}
+	}
+}
+
+int apcuTest() {
+	auto a = APCU::get();
+
+	auto m = make_shared<M>();
+	m->v   = 123.456;
+	m->k   = "ciao";
+
+	while (true) {
+		//thread t1(spammer1);
+		//thread t2(spammer1);
+		thread t6(spammer1);
+		//thread t8(spammer1);
+		thread r1(reader);
+		thread r2(reader);
+		thread r3(reader);
+		thread r4(reader);
+		thread r5(reader);
+		thread r6(reader);
+
+		sleep(1);
+		qDebug().noquote() << a->info();
+		//t1.join();
+		//t2.join();
+
+		t6.join();
+		//t8.join();
+
+		r1.join();
+		r2.join();
+		r3.join();
+		r4.join();
+		r5.join();
+		r6.join();
+
+		qDebug() << found;
+	}
+	sleep(1000);
 	return 0;
 }
