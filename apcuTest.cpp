@@ -2,6 +2,8 @@
 #include <QDebug>
 #include <thread>
 using namespace std;
+//auto cache1 = APCU<uint32_t>::create();
+auto cache1 = APCU<QString>::create();
 struct M {
 	QString k;
 	double  v = 0;
@@ -14,24 +16,24 @@ struct T {
 };
 
 void spammer1() {
-	auto a = APCU::get();
 
 	auto m = make_shared<M>();
 	m->v   = 123.456;
 	m->k   = "ciao";
 
 	for (int i = 0; i < 500000; i++) {
-		a->store(QSL("k1 %1").arg(random() % (1024 * 1024 * 1024)), m, 1);
+		cache1->store(QSL("k1 %1").arg(random() % (1024 * 1024 * 1024)), m, 1);
+		//cache1->store(random() % (1024 * 1024 * 1024), m, 1);
 	}
 }
 
 uint found = 0;
 
 void reader() {
-	auto a = APCU::get();
 
 	for (int i = 0; i < 500000; i++) {
-		auto v = a->fetch<M>(QSL("k1 %1").arg(random() % 1024 * 1024 * 1024));
+		auto v = cache1->fetch<M>(QSL("k1 %1").arg(random() % 1024 * 1024 * 1024));
+		//auto v = cache1->fetch<M>(random() % 1024 * 1024 * 1024);
 		if (v) {
 			found++;
 		}
@@ -39,16 +41,11 @@ void reader() {
 }
 
 int apcuTest() {
-	auto a = APCU::get();
-
-	auto m = make_shared<M>();
-	m->v   = 123.456;
-	m->k   = "ciao";
 
 	while (true) {
-		//thread t1(spammer1);
-		//thread t2(spammer1);
-		thread t6(spammer1);
+		thread t1(spammer1);
+		thread t2(spammer1);
+		//thread t6(spammer1);
 		//thread t8(spammer1);
 		thread r1(reader);
 		thread r2(reader);
@@ -57,12 +54,11 @@ int apcuTest() {
 		thread r5(reader);
 		thread r6(reader);
 
-		
-		qDebug().noquote() << a->info();
-		//t1.join();
-		//t2.join();
+		qDebug().noquote() << cache1->info();
+		t1.join();
+		t2.join();
 
-		t6.join();
+		//t6.join();
 		//t8.join();
 
 		r1.join();
