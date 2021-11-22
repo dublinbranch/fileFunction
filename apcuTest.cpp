@@ -2,11 +2,11 @@
 #include <QDebug>
 #include <thread>
 using namespace std;
-//auto cache1 = APCU<uint32_t>::create();
-auto cache1 = APCU<QString>::create();
+auto cache1 = APCU<uint32_t>::create();
+//auto cache1 = APCU<QString>::create();
 struct M {
-	QString k;
-	double  v = 0;
+	//QString k;
+	double v = 0;
 	//mutex   rowLock;
 };
 struct T {
@@ -17,13 +17,14 @@ struct T {
 
 void spammer1() {
 
-	auto m = make_shared<M>();
-	m->v   = 123.456;
-	m->k   = "ciao";
+	//	m->k   = "ciao";
 
 	for (int i = 0; i < 500000; i++) {
-		cache1->store(QSL("k1 %1").arg(random() % (1024 * 1024 * 1024)), m, 1);
-		//cache1->store(random() % (1024 * 1024 * 1024), m, 1);
+		auto m   = make_shared<M>();
+		auto key = random() % (1024 * 1024 * 1024);
+		m->v     = key;
+		//cache1->store(QSL("k1 %1").arg(random() % (1024 * 1024 * 1024)), m, 1);
+		cache1->store(key, m, 1);
 	}
 }
 
@@ -32,10 +33,14 @@ uint found = 0;
 void reader() {
 
 	for (int i = 0; i < 500000; i++) {
-		auto v = cache1->fetch<M>(QSL("k1 %1").arg(random() % 1024 * 1024 * 1024));
-		//auto v = cache1->fetch<M>(random() % 1024 * 1024 * 1024);
+		//auto v = cache1->fetch<M>(QSL("k1 %1").arg(random() % 1024 * 1024 * 1024));
+		auto key = random() % 1024 * 1024 * 1024;
+		auto v   = cache1->fetch<M>(key);
 		if (v) {
 			found++;
+			if (v->v != key) {
+				qCritical() << "error in the cache, value is the expected one for " << key << "found" << v->v;
+			}
 		}
 	}
 }

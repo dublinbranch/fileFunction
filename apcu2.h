@@ -52,11 +52,9 @@ class APCU : private NonCopyable {
 
 		if (iter = cache.find(key); iter != cache.end()) {
 			if (iter->second.expired()) {
-				//https://en.cppreference.com/w/cpp/thread/shared_mutex/lock
-				scoped.unlock(); //promote to a stronger lock
-				scoped.lock();
-				cache.erase(iter);
-				deleted++;
+				//unlock and just relock is bad, as will leave a GAP!
+				//you should unlock, restart the operation under full lock, and than erase...
+				//who cares, in a few second the GC will remove the record anyways
 				return nullptr;
 			}
 			hits++;
