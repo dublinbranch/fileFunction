@@ -7,13 +7,22 @@ SOURCES += \
     $$PWD/folder.cpp
     
 HEADERS += \
+	$$PWD/GeoLite2PP/GeoLite2PP.hpp \
+	$$PWD/GeoLite2PP/GeoLite2PP_error_category.hpp \
 	$$PWD/apcu2.h \
 	$$PWD/ffCommon.h \
 	$$PWD/filefunction.h \
 	$$PWD/folder.h \
 	$$PWD/serialize.h
 
-#zypper in libzip-devel
+# - SETUP -
+# zypper in libzip-devel
+# OR (should be equivalent)
+# if compile error because not found "maxminddb.h" file (included in GeoLite2PP.hpp) then install "libmaxminddb-devel" package in YaST2
 LIBS += -lzip
 LIBS += -L'$$PWD/GeoLite2PP' -lgeolite2++
 LIBS += -lmaxminddb
+
+DISTFILES += \
+	$$PWD/GeoLite2PP/README.md \
+	$$PWD/GeoLite2PP/libgeolite2++.a
