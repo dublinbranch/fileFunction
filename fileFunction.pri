@@ -15,3 +15,5 @@ HEADERS += \
 
 #zypper in libzip-devel
 LIBS += -lzip
+LIBS += -L'$$PWD/GeoLite2PP' -lgeolite2++
+LIBS += -lmaxminddb
