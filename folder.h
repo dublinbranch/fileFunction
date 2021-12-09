@@ -1,8 +1,8 @@
 #ifndef FOLDER_H
 #define FOLDER_H
 
-#include <QString>
 #include "ffCommon.h"
+#include <QString>
 
 bool        mkdir(const QString& dirName);
 void        cleanFolder(const QString& folder);

@@ -17,6 +17,7 @@ HEADERS += \
 	$$PWD/ffCommon.h \
 	$$PWD/filefunction.h \
 	$$PWD/folder.h \
+	$$PWD/mixin.h \
 	$$PWD/serialize.h \
 	$$PWD/Qt-AES/aesni/aesni-enc-cbc.h \
 	$$PWD/Qt-AES/aesni/aesni-enc-ecb.h \

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "QStacker/exceptionv2.h"
+#include "fileFunction/mixin.h"
 #include "mapExtensor/rwguard.h"
 #include <QDateTime>
 #include <QHash>
@@ -10,18 +11,8 @@
 #include <shared_mutex>
 #include <thread>
 #include <unordered_map>
-
 #define QSL(str) QStringLiteral(str)
 void throwTypeError(const std::type_info* found, const std::type_info* expected);
-
-class NonCopyable {
-      protected:
-	NonCopyable()  = default;
-	~NonCopyable() = default;
-
-	NonCopyable(const NonCopyable&) = delete;
-	NonCopyable& operator=(const NonCopyable&) = delete;
-};
 
 struct Value {
 	std::any obj;
@@ -37,7 +28,7 @@ struct Value {
 };
 
 template <class Key>
-class APCU : private NonCopyable {
+class APCU : private NoCopy {
       public:
 	static APCU* create() {
 		return new APCU();
