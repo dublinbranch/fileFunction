@@ -6,6 +6,9 @@ SOURCES += \
     $$PWD/filefunction.cpp \
 	$$PWD/folder.cpp \
 	$$PWD/Qt-AES/qaesencryption.cpp
+
+#non funziona
+#include(Qt-AES/qaesencryption.pro)
     
 HEADERS += \
 	$$PWD/GeoLite2PP/GeoLite2PP.hpp \
