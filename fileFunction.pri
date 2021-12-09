@@ -4,7 +4,8 @@ SOURCES += \
     $$PWD/apcu2.cpp \
     $$PWD/apcuTest.cpp \
     $$PWD/filefunction.cpp \
-    $$PWD/folder.cpp
+	$$PWD/folder.cpp \
+	$$PWD/Qt-AES/qaesencryption.cpp
     
 HEADERS += \
 	$$PWD/GeoLite2PP/GeoLite2PP.hpp \
@@ -13,7 +14,11 @@ HEADERS += \
 	$$PWD/ffCommon.h \
 	$$PWD/filefunction.h \
 	$$PWD/folder.h \
-	$$PWD/serialize.h
+	$$PWD/serialize.h \
+	$$PWD/Qt-AES/aesni/aesni-enc-cbc.h \
+	$$PWD/Qt-AES/aesni/aesni-enc-ecb.h \
+	$$PWD/Qt-AES/aesni/aesni-key-exp.h \
+	$$PWD/Qt-AES/qaesencryption.h
 
 # - SETUP -
 # zypper in libzip-devel
