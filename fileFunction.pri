@@ -1,6 +1,7 @@
 CONFIG += object_parallel_to_source
 
 SOURCES += \
+    $$PWD/UaDecoder.cpp \
     $$PWD/apcu2.cpp \
     $$PWD/apcuTest.cpp \
     $$PWD/filefunction.cpp \
@@ -13,6 +14,7 @@ SOURCES += \
 HEADERS += \
 	$$PWD/GeoLite2PP/GeoLite2PP.hpp \
 	$$PWD/GeoLite2PP/GeoLite2PP_error_category.hpp \
+	$$PWD/UaDecoder.h \
 	$$PWD/apcu2.h \
 	$$PWD/ffCommon.h \
 	$$PWD/filefunction.h \
