@@ -2,7 +2,8 @@
 #include "JSONReader/jsonreader.h"
 #include "minCurl/mincurl.h"
 #include <QDateTime>
-UaDecoder::UaDecoder(const QString& userAgent, const QString& decoderUrl) {
+
+bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 	auto       url = decoderUrl + "?ua=" + userAgent;
 	CurlKeeper curl;
 	//should be on same machine and heavily used, normal time is around 1ms
@@ -10,7 +11,7 @@ UaDecoder::UaDecoder(const QString& userAgent, const QString& decoderUrl) {
 
 	auto res = urlGetContent2(url, true);
 	if (!res.ok) {
-		return;
+		return false;
 	}
 
 	JSONReader reader;
@@ -18,7 +19,7 @@ UaDecoder::UaDecoder(const QString& userAgent, const QString& decoderUrl) {
 		static auto refreshAfter = QDateTime::currentSecsSinceEpoch() + 120;
 		if (refreshAfter < QDateTime::currentSecsSinceEpoch()) {
 			qCritical() << "matomo json decoder read error" << QStacker16Light();
-			return;
+			return false;
 		}
 	}
 	reader.getta("enabled", ok);
@@ -26,7 +27,7 @@ UaDecoder::UaDecoder(const QString& userAgent, const QString& decoderUrl) {
 		static auto refreshAfter = QDateTime::currentSecsSinceEpoch() + 120;
 		if (refreshAfter < QDateTime::currentSecsSinceEpoch() + 120) {
 			qCritical() << "json decoder not enabled" << QStacker16Light();
-			return;
+			return false;
 		}
 	}
 
@@ -38,4 +39,5 @@ UaDecoder::UaDecoder(const QString& userAgent, const QString& decoderUrl) {
 	reader.getta("brand", brand);
 	reader.getta("bot", bot);
 	reader.getta("bot", bot);
+	return true;
 }
