@@ -7,7 +7,7 @@ const QTimeZone UTC = QTimeZone("UTC");
 const QDateTime unixMidnight = QDateTime::fromSecsSinceEpoch(0, Qt::UTC);
 
 //This will keep the timestamp
-[[nodiscard]] QDateTime alterTz(const QDateTime& old, const QTimeZone& tz);
+[[nodiscard]] [[deprecated("use QdateTime.toTimeZone")]] QDateTime alterTz(const QDateTime& old, const QTimeZone& tz);
 //This will alter the timestamp!
 [[nodiscard]] QDateTime setTz(const QDateTime& old, const QTimeZone& tz);
 //Floor to the begin of the hour
