@@ -4,7 +4,7 @@
 #include <QDateTime>
 
 bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
-	auto       url = decoderUrl + "?ua=" + userAgent;
+	auto       url = decoderUrl + "?ua=" + userAgent.toUtf8().toPercentEncoding();
 	CurlKeeper curl;
 	//should be on same machine and heavily used, normal time is around 1ms
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10);
@@ -22,7 +22,7 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 			return false;
 		}
 	}
-	reader.getta("enabled", ok);
+	reader.getta("/enabled", ok);
 	if (!ok) {
 		static auto refreshAfter = QDateTime::currentSecsSinceEpoch() + 120;
 		if (refreshAfter < QDateTime::currentSecsSinceEpoch() + 120) {
@@ -31,13 +31,12 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 		}
 	}
 
-	reader.getta("osName", osName);
-	reader.getta("osVersion", osVersion);
-	reader.getta("browserVersion", browserVersion);
-	reader.getta("browserName", browserName);
-	reader.getta("device", device);
-	reader.getta("brand", brand);
-	reader.getta("bot", bot);
-	reader.getta("bot", bot);
+	reader.getta("/osName", osName);
+	reader.getta("/osVersion", osVersion);
+	reader.getta("/browserVersion", browserVersion);
+	reader.getta("/browserName", browserName);
+	reader.getta("/device", device);
+	reader.getta("/brand", brand);
+	reader.getta("/bot", bot);
 	return true;
 }
