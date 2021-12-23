@@ -1,11 +1,24 @@
 #include "UaDecoder.h"
 #include "JSONReader/jsonreader.h"
 #include "fileFunction/filefunction.h"
+#include "mapExtensor/rwguard.h"
 #include "minCurl/mincurl.h"
 #include "minMysql/const.h"
 #include <QDateTime>
+#include <shared_mutex>
+
+static std::shared_mutex         lock;
+static mapV2<QString, UaDecoder> cache;
 
 bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
+	RWGuard scoped(&lock);
+	scoped.lockShared();
+	if (auto v = cache.get(userAgent); v) {
+		*this = *v.val;
+		return true;
+	}
+	scoped.unlock();
+
 	auto       url = decoderUrl + "?ua=" + userAgent.toUtf8().toPercentEncoding();
 	CurlKeeper curl;
 	//should be on same machine and heavily used, normal time is around 1ms
@@ -46,5 +59,9 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 	reader.getta("/device", device);
 	reader.getta("/brand", brand);
 	reader.getta("/bot", bot);
+
+	scoped.lock();
+	cache.insert({userAgent, *this});
+	scoped.unlock();
 	return true;
 }
