@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ffCommon.h"
-#include "folder.h"
 #include <QFile>
 #include <QSaveFile>
 
