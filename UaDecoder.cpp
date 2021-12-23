@@ -18,7 +18,7 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 	if (!reader.parse(res.result)) {
 		static auto refreshAfter = QDateTime::currentSecsSinceEpoch() + 120;
 		if (refreshAfter < QDateTime::currentSecsSinceEpoch()) {
-			qCritical() << "matomo json decoder read error" << QStacker16Light();
+			qCritical() << "matomo json decoder read error while decoding " << userAgent << QStacker16Light();
 			return false;
 		}
 	}
