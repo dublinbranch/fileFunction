@@ -1,6 +1,8 @@
 #include "UaDecoder.h"
 #include "JSONReader/jsonreader.h"
+#include "fileFunction/filefunction.h"
 #include "minCurl/mincurl.h"
+#include "minMysql/const.h"
 #include <QDateTime>
 
 bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
@@ -10,7 +12,13 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10);
 
 	auto res = urlGetContent2(url, true);
-	if (!res.ok) {
+	if (res.httpCode != 200) {
+		if (res.httpCode != 200) {
+			filePutContents(QSL("\n------\n %1 error %2 for decoding ua %3 ")
+			                        .arg(QDateTime::currentDateTime().toString(mysqlDateTimeFormat), res.result.data()) +
+			                    userAgent,
+			                "log/uaDecoder.log");
+		}
 		return false;
 	}
 
