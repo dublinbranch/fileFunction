@@ -42,14 +42,13 @@ class APCU : private NoCopy {
 		scoped.lockShared();
 
 		if (iter = cache.find(key); iter != cache.end()) {
-			if (iter->second.expired()) {
-				//unlock and just relock is bad, as will leave a GAP!
-				//you should unlock, restart the operation under full lock, and than erase...
-				//who cares, in a few second the GC will remove the record anyways
-				return nullptr;
+			if (!iter->second.expired()) {
+				hits++;
+				return any_cast<std::shared_ptr<T>>(iter->second.obj);
 			}
-			hits++;
-			return any_cast<std::shared_ptr<T>>(iter->second.obj);
+			//unlock and just relock is bad, as will leave a GAP!
+			//you should unlock, restart the operation under full lock, and than erase...
+			//who cares, in a few second the GC will remove the record anyways
 		}
 		miss++;
 		return nullptr;
@@ -111,7 +110,7 @@ class APCU : private NoCopy {
       private:
 	void garbageCollector_F2() {
 		while (true) {
-			sleep(1);
+			sleep(60);
 			quint32 scanned = 0;
 			auto    now     = QDateTime::currentSecsSinceEpoch();
 
