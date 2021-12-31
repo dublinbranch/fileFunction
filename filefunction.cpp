@@ -481,3 +481,7 @@ void logWithTime(QString logFile, QString msg) {
 	                  .arg(now, msg);
 	fileAppendContents(logMsg.toUtf8(), logFile);
 }
+
+bool fileAppendContents(const QString& pay, const QString& fileName) {
+	fileAppendContents(pay.toUtf8(), fileName);
+}
