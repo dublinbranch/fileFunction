@@ -10,6 +10,10 @@
 static std::shared_mutex         lock;
 static mapV2<QString, UaDecoder> cache;
 
+UaDecoder::UaDecoder(const QString& userAgent, const QString& decoderUrl) {
+	decode(userAgent, decoderUrl);
+}
+
 bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 	RWGuard scoped(&lock);
 	scoped.lockShared();
@@ -64,4 +68,8 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 	cache.insert({userAgent, *this});
 	scoped.unlock();
 	return true;
+}
+
+bool UaDecoder::isMobile() const {
+	return device != QSL("desktop");
 }
