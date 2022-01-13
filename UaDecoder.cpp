@@ -1,9 +1,9 @@
 #include "UaDecoder.h"
 #include "JSONReader/jsonreader.h"
 #include "fileFunction/filefunction.h"
+#include "fileFunction/stringDefine.h"
 #include "mapExtensor/rwguard.h"
 #include "minCurl/mincurl.h"
-#include "minMysql/const.h"
 #include <QDateTime>
 #include <shared_mutex>
 
