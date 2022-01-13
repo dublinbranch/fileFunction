@@ -4,6 +4,7 @@ SOURCES += \
     $$PWD/UaDecoder.cpp \
     $$PWD/apcu2.cpp \
     $$PWD/apcuTest.cpp \
+    $$PWD/b64.cpp \
     $$PWD/filefunction.cpp \
 	$$PWD/folder.cpp \
 	$$PWD/Qt-AES/qaesencryption.cpp \
@@ -14,6 +15,7 @@ HEADERS += \
 	$$PWD/GeoLite2PP/GeoLite2PP_error_category.hpp \
 	$$PWD/UaDecoder.h \
 	$$PWD/apcu2.h \
+	$$PWD/b64.h \
 	$$PWD/ffCommon.h \
 	$$PWD/filefunction.h \
 	$$PWD/folder.h \
@@ -23,6 +25,7 @@ HEADERS += \
 	$$PWD/Qt-AES/aesni/aesni-enc-ecb.h \
 	$$PWD/Qt-AES/aesni/aesni-key-exp.h \
 	$$PWD/Qt-AES/qaesencryption.h \
+	$$PWD/stringDefine.h \
 	$$PWD/timezone.h
 
 # - SETUP -
