@@ -3,7 +3,7 @@
 #include "fileFunction/filefunction.h"
 #include "mapExtensor/rwguard.h"
 #include "minCurl/mincurl.h"
-#include "minMysql/const.h"
+#include "stringDefine.h"
 #include <QDateTime>
 #include <shared_mutex>
 
