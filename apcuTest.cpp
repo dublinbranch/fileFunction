@@ -1,3 +1,4 @@
+#ifdef APCU_TEST_ON
 #include "fileFunction/apcu2.h"
 #include <QDebug>
 #include <thread>
@@ -78,3 +79,5 @@ int apcuTest() {
 	sleep(1000);
 	return 0;
 }
+
+#endif
