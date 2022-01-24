@@ -4,6 +4,7 @@
 #include "fileFunction/stringDefine.h"
 #include "mapExtensor/rwguard.h"
 #include "minCurl/mincurl.h"
+#include "stringDefine.h"
 #include <QDateTime>
 #include <shared_mutex>
 
