@@ -108,36 +108,7 @@ class APCU : private NoCopy {
 	std::atomic<uint64_t> miss;
 
       private:
-	void garbageCollector_F2() {
-		while (true) {
-			sleep(60);
-			quint32 scanned = 0;
-			auto    now     = QDateTime::currentSecsSinceEpoch();
-
-			RWGuard scoped(&innerLock);
-			scoped.lock();
-
-			auto iter = cache.begin();
-			auto end  = cache.end();
-			while (iter != end) {
-				scanned++;
-				if (scanned % 500 == 0) {
-					scoped.unlock();
-					//this will deschedule this thread. So if someone else has job to do it can
-					std::this_thread::yield();
-					scoped.lock();
-				}
-
-				if (iter->second.expired(now)) {
-					iter = cache.erase(iter);
-					deleted++;
-					continue;
-				} else {
-					iter++;
-				}
-			}
-		}
-	}
+	void garbageCollector_F2();
 	std::shared_mutex innerLock;
 	qint64            startedAt = 0;
 
