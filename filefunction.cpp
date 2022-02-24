@@ -401,7 +401,6 @@ std::vector<QStringRef> readCSVRowRef(const QStringRef& line, const QChar& separ
 			event = 4;
 		else {
 			ch = line[pos];
-			pos++;
 			if (ch == separator)
 				event = 0;
 			else if (ch == escape) {
@@ -411,6 +410,7 @@ std::vector<QStringRef> readCSVRowRef(const QStringRef& line, const QChar& separ
 			else
 				event = 3;
 		}
+		pos++;
 
 		actualState = delta[actualState][event];
 
@@ -427,7 +427,6 @@ std::vector<QStringRef> readCSVRowRef(const QStringRef& line, const QChar& separ
 			break;
 		case -1:
 		case 1:
-
 			if (!blockEnd) {
 				blockEnd = pos - 1;
 			}
@@ -435,7 +434,8 @@ std::vector<QStringRef> readCSVRowRef(const QStringRef& line, const QChar& separ
 				part.push_back(empty.midRef(0, 0));
 				blockEnd = 0;
 			} else {
-				part.push_back(line.mid(currentBlockStart, (blockEnd - currentBlockStart)));
+				auto numbOfChars = blockEnd - currentBlockStart;
+				part.push_back(line.mid(currentBlockStart, numbOfChars));
 				blockEnd          = 0;
 				currentBlockStart = -1;
 			}
