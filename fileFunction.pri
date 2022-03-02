@@ -8,6 +8,7 @@ SOURCES += \
     $$PWD/filefunction.cpp \
 	$$PWD/folder.cpp \
 	$$PWD/Qt-AES/qaesencryption.cpp \
+	$$PWD/sourcelocation.cpp \
     $$PWD/timezone.cpp
 
 HEADERS += \
@@ -25,6 +26,7 @@ HEADERS += \
 	$$PWD/Qt-AES/aesni/aesni-enc-ecb.h \
 	$$PWD/Qt-AES/aesni/aesni-key-exp.h \
 	$$PWD/Qt-AES/qaesencryption.h \
+	$$PWD/sourcelocation.h \
 	$$PWD/stringDefine.h \
 	$$PWD/timezone.h
 
