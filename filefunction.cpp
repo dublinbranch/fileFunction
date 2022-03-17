@@ -108,7 +108,7 @@ bool fileAppendContents(const QByteArray& pay, const QString& fileName) {
 	if (!file.open(QIODevice::Append | QIODevice::WriteOnly)) {
 		//TODO
 		// fare gestione dell'errore come in filePutContents
-		qWarning() << "not possible write data in file" << fileName << QStacker16Light();
+		qWarning().noquote() << "not possible write data in file" << fileName << QStacker16Light();
 
 		return false;
 	}
