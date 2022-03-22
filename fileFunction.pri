@@ -8,6 +8,8 @@ SOURCES += \
     $$PWD/filefunction.cpp \
 	$$PWD/folder.cpp \
 	$$PWD/Qt-AES/qaesencryption.cpp \
+    $$PWD/qdatetimev2.cpp \
+    $$PWD/snowflake.cpp \
 	$$PWD/sourcelocation.cpp \
     $$PWD/timezone.cpp
 
@@ -21,11 +23,13 @@ HEADERS += \
 	$$PWD/filefunction.h \
 	$$PWD/folder.h \
 	$$PWD/mixin.h \
+	$$PWD/qdatetimev2.h \
 	$$PWD/serialize.h \
 	$$PWD/Qt-AES/aesni/aesni-enc-cbc.h \
 	$$PWD/Qt-AES/aesni/aesni-enc-ecb.h \
 	$$PWD/Qt-AES/aesni/aesni-key-exp.h \
 	$$PWD/Qt-AES/qaesencryption.h \
+	$$PWD/snowflake.h \
 	$$PWD/sourcelocation.h \
 	$$PWD/stringDefine.h \
 	$$PWD/timezone.h
