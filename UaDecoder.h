@@ -23,16 +23,16 @@ class UaDecoder {
 	UaDecoder() = default;
 	bool decode(const QString& userAgent, const QString& decoderUrl);
 
-	bool     ok = false;
-	QString  osName;
-	QString  osVersion;
-	uint64_t browserVersion = 0;
-	QString  browserName;
-	QString  device;
-	QString  brand;
-	QString  bot;
-	QString  enabled;
-	bool     isMobile() const;
+	bool    ok = false;
+	QString osName;
+	QString osVersion;
+	int64_t browserVersion = 0;
+	QString browserName;
+	QString device;
+	QString brand;
+	QString bot;
+	QString enabled;
+	bool    isMobile() const;
 };
 
 #endif // UADECODER_H
