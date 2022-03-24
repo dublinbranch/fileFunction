@@ -26,7 +26,7 @@ class UaDecoder {
 	bool     ok = false;
 	QString  osName;
 	QString  osVersion;
-	uint64_t browserVersion;
+	uint64_t browserVersion = 0;
 	QString  browserName;
 	QString  device;
 	QString  brand;
