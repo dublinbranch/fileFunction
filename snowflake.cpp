@@ -2,7 +2,7 @@
 #include <QDebug>
 #include <math.h>
 u_int64_t Snowflake::next() {
-	auto t2 = QDateTimeV2::getMs();
+	auto t2 = TimespecV2::now();
 	if (t2 != lastUse) {
 		lastUse = t2;
 		seq     = 0;

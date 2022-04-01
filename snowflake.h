@@ -38,8 +38,8 @@ class Snowflake : public NoCopy {
 	                            //4 bit are reserved atm
 
 	//Each time the time changes we will reset the seq
-	std::atomic<TimevalV2> lastUse;
-	void                   testMe();
+	std::atomic<TimespecV2> lastUse;
+	void                    testMe();
 };
 
 #endif // SNOWFLAKE_H
