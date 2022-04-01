@@ -13,7 +13,7 @@ uint fileSerialize(QString fileName, const T& t) {
 	}
 
 	QDataStream out(&file);
-	out.setVersion(QDataStream::Qt_DefaultCompiledVersion);
+	out.setVersion(QDataStream::Qt_5_15);
 	out << t;
 	return file.size();
 }
@@ -25,7 +25,7 @@ struct UnserializeResult {
 	bool      valid = false;
 };
 template <typename T>
-UnserializeResult fileUnSerialize(QString fileName, T& t, uint maxAge = 0) {
+UnserializeResult fileUnSerialize(const QString& fileName, T& t, uint maxAge = 0) {
 
 	QFileXT file;
 	file.setFileName(fileName);
@@ -42,7 +42,7 @@ UnserializeResult fileUnSerialize(QString fileName, T& t, uint maxAge = 0) {
 	}
 
 	QDataStream in(&file);
-	in.setVersion(QDataStream::Qt_DefaultCompiledVersion);
+	in.setVersion(QDataStream::Qt_5_15);
 
 	in >> t;
 	return {file.size(), true, lastEdit, true};
