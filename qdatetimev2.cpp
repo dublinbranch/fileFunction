@@ -8,7 +8,8 @@ double TimespecV2::sec() const {
 
 double TimespecV2::fractional() const {
 	double s = 0;
-	return fmod(time, s);
+	double frac = modf(time, &s);
+	return frac;
 }
 
 uint TimespecV2::ms() const {
