@@ -26,7 +26,9 @@ struct UnserializeResult {
 };
 template <typename T>
 UnserializeResult fileUnSerialize(const QString& fileName, T& t, uint maxAge = 0) {
-
+	if (!maxAge) {
+		return {0, true, QDateTime::currentDateTime(), false};
+	}
 	QFileXT file;
 	file.setFileName(fileName);
 	if (!file.open(QIODevice::ReadOnly, true)) {
