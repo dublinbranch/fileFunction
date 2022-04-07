@@ -11,6 +11,7 @@ SOURCES += \
     $$PWD/qdatetimev2.cpp \
     $$PWD/snowflake.cpp \
 	$$PWD/sourcelocation.cpp \
+    $$PWD/threadstatush.cpp \
     $$PWD/timezone.cpp
 
 HEADERS += \
@@ -24,6 +25,7 @@ HEADERS += \
 	$$PWD/folder.h \
 	$$PWD/mixin.h \
 	$$PWD/qdatetimev2.h \
+	$$PWD/resetAfterUse.h \
 	$$PWD/serialize.h \
 	$$PWD/Qt-AES/aesni/aesni-enc-cbc.h \
 	$$PWD/Qt-AES/aesni/aesni-enc-ecb.h \
@@ -32,6 +34,7 @@ HEADERS += \
 	$$PWD/snowflake.h \
 	$$PWD/sourcelocation.h \
 	$$PWD/stringDefine.h \
+	$$PWD/threadstatush.h \
 	$$PWD/timezone.h
 
 # - SETUP -
