@@ -20,18 +20,13 @@ enum class ThreadState {
 
 class ElapsedTimerV2 {
       public:
-	void start() {
-		timer.restart();
-	}
-	qint64 pause() {
-		total += timer.nsecsElapsed();
-		return total;
-	}
-	qint64 nsecsElapsed() {
-		return total + timer.nsecsElapsed();
-	}
+	void   start();
+	qint64 pause();
+
+	qint64 nsecsElapsed() const;
 
       private:
+	bool          paused = true;
 	QElapsedTimer timer;
 	qint64        total = 0;
 };
@@ -39,20 +34,24 @@ class ElapsedTimerV2 {
 class ThreadStatus {
       public:
 	struct Timing {
-		QElapsedTimer timer;
+		ElapsedTimerV2 timer;
 
-		//Total execution time including log writing, clickhouse, sql, whatever
-		qint64 total;
-		//time spent in sql, this is computed only until the delivery, all sql after the http is sent are irrelevant
-		qint64 sql;
+		//Total execution time including log writing, clickhouse, sql, whatever until NOW (or is called pause)
+		qint64 total() const;
 		ElapsedTimerV2 clickHouse;
 		//Time spent doing IO, mostly reading the disk cache
 		ElapsedTimerV2 IO;
 		//Once data is fully sent to browser
-		qint64 flush;
+		qint64 flush = 0;
 		//The actual time spend executing code
-		qint64 execution;
-		void   reset();
+		qint64 execution() const;
+
+		//time spent in sql, this is computed only until the delivery, all sql after the http is sent are irrelevant
+		qint64 sqlImmediate;
+		qint64 sqlDeferred;
+
+		void reset();
+		void addSqlTime(qint64 addMe);
 	};
 
 	struct Status {
