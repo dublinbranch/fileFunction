@@ -13,12 +13,20 @@ void ThreadStatus::Timing::addSqlTime(qint64 addMe) {
 	}
 }
 
+void ThreadStatus::Timing::addCurlTime(qint64 addMe) {
+	if (flush) {
+		curlDeferred += addMe;
+	} else {
+		curlImmediate += addMe;
+	}
+}
+
 qint64 ThreadStatus::Timing::total() const {
 	return timer.nsecsElapsed();
 }
 
 qint64 ThreadStatus::Timing::execution() const {
-	return total() - (sqlDeferred + sqlImmediate + IO.nsecsElapsed() + clickHouse.nsecsElapsed());
+	return total() - (curlDeferred + curlImmediate + sqlDeferred + sqlImmediate + IO.nsecsElapsed() + clickHouse.nsecsElapsed());
 }
 
 void ThreadStatus::Timing::reset() {
@@ -33,6 +41,9 @@ void ElapsedTimerV2::start() {
 
 qint64 ElapsedTimerV2::pause() {
 	paused = true;
+	if (!timer.isValid()) {
+		throw ExceptionV2("invalid timer ? there must be some logic bug somewhere");
+	}
 	total += timer.nsecsElapsed();
 	return total;
 }

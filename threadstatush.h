@@ -15,7 +15,8 @@ enum class ThreadState {
 	Deferred,
 	MyQuery,
 	MyCache,
-	ClickHouse
+	ClickHouse,
+	cURL,
 };
 
 class ElapsedTimerV2 {
@@ -37,8 +38,9 @@ class ThreadStatus {
 		ElapsedTimerV2 timer;
 
 		//Total execution time including log writing, clickhouse, sql, whatever until NOW (or is called pause)
-		qint64 total() const;
+		qint64         total() const;
 		ElapsedTimerV2 clickHouse;
+
 		//Time spent doing IO, mostly reading the disk cache
 		ElapsedTimerV2 IO;
 		//Once data is fully sent to browser
@@ -50,8 +52,13 @@ class ThreadStatus {
 		qint64 sqlImmediate;
 		qint64 sqlDeferred;
 
+		qint64 curlImmediate;
+		qint64 curlDeferred;
+
 		void reset();
+		//We need a function as we do the separation between Immediate and Deferred
 		void addSqlTime(qint64 addMe);
+		void addCurlTime(qint64 addMe);
 	};
 
 	struct Status {
