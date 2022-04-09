@@ -2,7 +2,6 @@
 #include "QStacker/qstacker.h"
 #include "folder.h"
 #include "magicEnum/magic_enum.hpp"
-#include "minMysql/min_mysql.h"
 #include "serialize.h"
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -14,6 +13,7 @@
 #include <mutex>
 #include <sys/file.h>
 #include <zip.h>
+#include "stringDefine.h"
 
 #define QBL(str) QByteArrayLiteral(str)
 #define QSL(str) QStringLiteral(str)
