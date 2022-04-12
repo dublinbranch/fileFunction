@@ -49,11 +49,11 @@ class ThreadStatus {
 		qint64 execution() const;
 
 		//time spent in sql, this is computed only until the delivery, all sql after the http is sent are irrelevant
-		qint64 sqlImmediate;
-		qint64 sqlDeferred;
+		qint64 sqlImmediate = 0;
+		qint64 sqlDeferred  = 0;
 
-		qint64 curlImmediate;
-		qint64 curlDeferred;
+		qint64 curlImmediate = 0;
+		qint64 curlDeferred  = 0;
 
 		void reset();
 		//We need a function as we do the separation between Immediate and Deferred
