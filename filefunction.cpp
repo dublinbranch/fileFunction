@@ -3,6 +3,7 @@
 #include "folder.h"
 #include "magicEnum/magic_enum.hpp"
 #include "serialize.h"
+#include "stringDefine.h"
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDateTime>
@@ -13,7 +14,6 @@
 #include <mutex>
 #include <sys/file.h>
 #include <zip.h>
-#include "stringDefine.h"
 
 #define QBL(str) QByteArrayLiteral(str)
 #define QSL(str) QStringLiteral(str)
@@ -116,6 +116,14 @@ bool fileAppendContents(const QByteArray& pay, const QString& fileName) {
 	file.write("\n");
 	file.close();
 	return true;
+}
+
+QByteArray sha512(const QByteArray& original, bool urlSafe) {
+	auto sha1 = QCryptographicHash::hash(original, QCryptographicHash::Algorithm::Sha512);
+	if (urlSafe) {
+		return sha1.toBase64(QByteArray::Base64Option::Base64UrlEncoding | QByteArray::Base64Option::OmitTrailingEquals);
+	}
+	return sha1;
 }
 
 QByteArray sha1(const QByteArray& original, bool urlSafe) {

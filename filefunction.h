@@ -31,7 +31,7 @@ struct FileGetRes {
 struct FPCRes {
 	bool                   ok;
 	QFileDevice::FileError error = QFileDevice::FileError::NoError;
-	operator bool();
+	                       operator bool();
 };
 
 FPCRes filePutContents(const QString& pay, const QString& fileName);
@@ -46,6 +46,8 @@ FileGetRes fileGetContents2(const QString& fileName, bool quiet = true, uint max
 bool fileAppendContents(const QString& pay, const QString& fileName);
 bool fileAppendContents(const QByteArray& pay, const QString& fileName);
 bool fileAppendContents(const std::string& pay, const QString& fileName);
+
+QByteArray sha512(const QByteArray& original, bool urlSafe = true);
 
 QByteArray sha1(const QByteArray& original, bool urlSafe = true);
 QByteArray sha1(const QString& original, bool urlSafe = true);
