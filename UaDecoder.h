@@ -17,11 +17,13 @@
         }
 
 */
+
 class UaDecoder {
       public:
 	UaDecoder(const QString& userAgent, const QString& decoderUrl);
 	UaDecoder() = default;
-	bool decode(const QString& userAgent, const QString& decoderUrl);
+	bool               decode(const QString& userAgent, const QString& decoderUrl);
+	static std::string getHtml();
 
 	bool    ok = false;
 	QString osName;
