@@ -6,16 +6,38 @@
 #include "minCurl/mincurl.h"
 #include "stringDefine.h"
 #include <QDateTime>
+#include <atomic>
 #include <shared_mutex>
 
+using namespace std;
 static std::shared_mutex         lock;
 static mapV2<QString, UaDecoder> cache;
+static atomic<uint>              request = 0;
+
+std::string UaDecoder::getHtml() {
+	string html = fmt::format(R"(
+<h2>UaDecoder</h2>
+<table class="tableG1">
+<tr>
+	<th>Size</th>
+	<th>Request</th>
+</tr>
+<tr>
+	<td>{}</td>
+	<td>{}</td>
+</tr>
+</table>
+)",
+	                          cache.size(), request);
+	return html;
+}
 
 UaDecoder::UaDecoder(const QString& userAgent, const QString& decoderUrl) {
 	decode(userAgent, decoderUrl);
 }
 
 bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
+	request++;
 	RWGuard scoped(&lock);
 	scoped.lockShared();
 	if (auto v = cache.get(userAgent); v) {
