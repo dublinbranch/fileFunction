@@ -4,6 +4,8 @@
 #include <QString>
 
 QString base64this(const char* param);
+QString toBase64(const QString& url, bool urlSafe = true);
+QString fromBase64(const QString& url64, bool urlSafe = true);
 QString base64this(const QByteArray& param);
 QString base64this(const QString& param);
 QString base64this(const std::string& param);

@@ -8,6 +8,22 @@ QString base64this(const char* param) {
 	return base64this(cheap);
 }
 
+QString toBase64(const QString& url, bool urlSafe) {
+    auto b = QByteArray::Base64Option::Base64UrlEncoding | QByteArray::Base64Option::OmitTrailingEquals;
+    if (urlSafe) {
+        return url.toUtf8().toBase64(b);
+    }
+    return url.toUtf8().toBase64();
+}
+
+QString fromBase64(const QString& url64, bool urlSafe) {
+    auto b = QByteArray::Base64Option::Base64UrlEncoding | QByteArray::Base64Option::OmitTrailingEquals;
+    if (urlSafe) {
+        return QByteArray::fromBase64(url64.toUtf8(), b);
+    }
+    return QByteArray::fromBase64(url64.toUtf8());
+}
+
 QString base64this(const QByteArray& param) {
 	return QBL("FROM_BASE64('") + param.toBase64() + QBL("')");
 }
@@ -18,7 +34,7 @@ QString base64this(const QString& param) {
 }
 
 QString base64this(const std::string_view& param) {
-	QByteArray cheap;
+    QByteArray cheap;
 	cheap.setRawData(param.data(), param.size());
 	return base64this(cheap);
 }
