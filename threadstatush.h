@@ -66,6 +66,7 @@ class ThreadStatus {
 		int         tid = 0;
 		Timing      time;
 		QString     info;
+		QByteArray  sql;
 	};
 
 	Status* newStatus() const {

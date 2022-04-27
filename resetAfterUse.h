@@ -27,3 +27,27 @@ class ResetAfterUse {
 	K* variable = nullptr;
 	K  oldValue;
 };
+
+template <typename K>
+class SetOnExit {
+      public:
+	SetOnExit() = default;
+
+	void set(K& key, const K& value) {
+		//Copy the value
+		nextValue = value;
+
+		//Keep a reference
+		this->variable = &key;
+	}
+	SetOnExit(K& key, const K& value) {
+		set(key, value);
+	}
+	~SetOnExit() {
+		*variable = nextValue;
+	}
+
+      private:
+	K* variable = nullptr;
+	K  nextValue;
+};
