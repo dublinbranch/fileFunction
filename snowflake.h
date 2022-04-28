@@ -2,7 +2,7 @@
 #define SNOWFLAKE_H
 
 #include "mixin.h"
-#include "qdatetimev2.h"
+#include "qDateTimeUtil.h"
 #include <atomic>
 class Snowflake : public NoCopy {
 	using u64 = uint64_t;
