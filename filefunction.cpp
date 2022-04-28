@@ -2,6 +2,7 @@
 #include "QStacker/qstacker.h"
 #include "folder.h"
 #include "magicEnum/magic_enum.hpp"
+#include "resetAfterUse.h"
 #include "serialize.h"
 #include "stringDefine.h"
 #include <QCoreApplication>
@@ -199,8 +200,8 @@ QVector<QByteArray> csvExploder(QByteArray line, const char separator) {
 	std::vector<std::string> vec2;
 	auto                     cry = line.toStdString();
 	try {
-		cxaLevel = CxaLevel::none;
-		Tokenizer tok(cry, sep);
+		ResetAfterUse r(cxaLevel, CxaLevel::none);
+		Tokenizer     tok(cry, sep);
 		vec2.assign(tok.begin(), tok.end());
 	} catch (...) {
 		// qWarning().noquote() << "error decoding csv line " << line;

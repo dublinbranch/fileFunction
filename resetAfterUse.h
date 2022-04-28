@@ -51,3 +51,18 @@ class SetOnExit {
 	K* variable = nullptr;
 	K  nextValue;
 };
+
+#include <utility>
+template <typename F>
+struct OnExit {
+	F func;
+	OnExit(F&& f)
+	    : func(std::forward<F>(f)) {
+	}
+	~OnExit() {
+		func();
+	}
+};
+
+template <typename F>
+OnExit(F&& frv) -> OnExit<F>;
