@@ -17,7 +17,7 @@ QString toBase64(const QString& url, bool urlSafe) {
 }
 
 QByteArray fromBase64(const QByteArray& url64, bool urlSafe) {
-	auto b = QByteArray::Base64Option::Base64UrlEncoding | QByteArray::Base64Option::OmitTrailingEquals;
+	auto b = QByteArray::Base64Option::Base64UrlEncoding;
 	if (urlSafe) {
 		return QByteArray::fromBase64(url64, b);
 	}
