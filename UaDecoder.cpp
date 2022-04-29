@@ -53,12 +53,10 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 
 	auto res = urlGetContent2(url, true);
 	if (res.httpCode != 200) {
-		if (res.httpCode != 200) {
-			filePutContents(QSL("\n------\n %1 error %2 for decoding ua %3 ")
+			fileAppendContents(QSL("\n------\n %1 error %2 for decoding ua %3 ")
 			                        .arg(QDateTime::currentDateTime().toString(mysqlDateTimeFormat), res.result.data()) +
 			                    userAgent,
 			                "log/uaDecoder.log");
-		}
 		return false;
 	}
 
