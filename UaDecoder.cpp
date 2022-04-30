@@ -38,6 +38,7 @@ UaDecoder::UaDecoder(const QString& userAgent, const QString& decoderUrl) {
 
 bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 	request++;
+	decoded = true;
 	RWGuard scoped(&lock);
 	scoped.lockShared();
 	if (auto v = cache.get(userAgent); v) {
@@ -84,6 +85,7 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 	reader.getta("/browserVersion", browserVersion);
 	reader.getta("/browserName", browserName);
 	reader.getta("/device", device);
+	deviceRDX(device);
 	reader.getta("/brand", brand);
 	reader.getta("/bot", bot);
 
@@ -95,4 +97,40 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 
 bool UaDecoder::isMobile() const {
 	return device != QSL("desktop");
+}
+
+DeviceRedux::DeviceRedux(const QString& full) {
+	this->operator()(full);
+}
+
+void DeviceRedux::operator()(const QString& full) {
+	if (full == QSL("smartphone")) {
+		device = smartphone;
+		return;
+	}
+	if (full == QSL("desktop")) {
+		device = desktop;
+		return;
+	}
+	if (full == QSL("phablet")) {
+		device = smartphone;
+		return;
+	}
+	if (full == QSL("tablet")) {
+		device = tablet;
+		return;
+	}
+	if (full == QSL("tv")) {
+		device = desktop;
+		return;
+	}
+
+	if (full == QSL("console")) {
+		device = desktop;
+		return;
+	}
+
+	//all else is considered smarthone
+	device = smartphone;
+	return;
 }

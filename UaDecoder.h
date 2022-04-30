@@ -18,6 +18,36 @@
 
 */
 
+/*
+Full list as of 2022 April is
+camera
+tv
+phablet
+portable media player
+peripheral
+wearable
+tablet
+car browser
+console
+desktop
+smartphone
+*/
+
+//https://s22.trott.pw/dev_wiki/index.php?title=Table/externalAgencies/adUnitIdBlacklistedMarket
+class DeviceRedux {
+      public:
+	enum Device {
+		NA         = 0,
+		smartphone = 1,
+		tablet     = 2,
+		desktop    = 3
+	} device      = NA;
+	DeviceRedux() = default;
+	DeviceRedux(const QString& full);
+	void operator()(const QString& full);
+	;
+};
+
 class UaDecoder {
       public:
 	UaDecoder(const QString& userAgent, const QString& decoderUrl);
@@ -25,16 +55,18 @@ class UaDecoder {
 	bool               decode(const QString& userAgent, const QString& decoderUrl);
 	static std::string getHtml();
 
-	bool    ok = false;
-	QString osName;
-	QString osVersion;
-	int64_t browserVersion = 0;
-	QString browserName;
-	QString device;
-	QString brand;
-	QString bot;
-	QString enabled;
-	bool    isMobile() const;
+	bool        decoded = false;
+	bool        ok      = false;
+	QString     osName;
+	QString     osVersion;
+	int64_t     browserVersion = 0;
+	QString     browserName;
+	QString     device;
+	DeviceRedux deviceRDX;
+	QString     brand;
+	QString     bot;
+	QString     enabled;
+	bool        isMobile() const;
 };
 
 #endif // UADECODER_H
