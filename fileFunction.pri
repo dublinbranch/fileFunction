@@ -9,6 +9,7 @@ SOURCES += \
 	$$PWD/folder.cpp \
 	$$PWD/Qt-AES/qaesencryption.cpp \
     $$PWD/qDateTimeUtil.cpp \
+    $$PWD/randutil.cpp \
     $$PWD/snowflake.cpp \
 	$$PWD/sourcelocation.cpp \
     $$PWD/threadstatush.cpp
@@ -24,6 +25,7 @@ HEADERS += \
 	$$PWD/filefunction.h \
 	$$PWD/folder.h \
 	$$PWD/mixin.h \
+	$$PWD/randutil.h \
 	$$PWD/resetAfterUse.h \
 	$$PWD/serialize.h \
 	$$PWD/Qt-AES/aesni/aesni-enc-cbc.h \
