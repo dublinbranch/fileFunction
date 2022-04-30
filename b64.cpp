@@ -16,12 +16,16 @@ QString toBase64(const QString& url, bool urlSafe) {
 	return url.toUtf8().toBase64();
 }
 
-QString fromBase64(const QString& url64, bool urlSafe) {
-	auto b = QByteArray::Base64Option::Base64UrlEncoding | QByteArray::Base64Option::OmitTrailingEquals;
+QByteArray fromBase64(const QByteArray& url64, bool urlSafe) {
+	auto b = QByteArray::Base64Option::Base64UrlEncoding;
 	if (urlSafe) {
-		return QByteArray::fromBase64(url64.toUtf8(), b);
+		return QByteArray::fromBase64(url64, b);
 	}
-	return QByteArray::fromBase64(url64.toUtf8());
+	return QByteArray::fromBase64(url64);
+}
+
+QString fromBase64(const QString& url64, bool urlSafe) {
+	return fromBase64(url64.toUtf8(), urlSafe);
 }
 
 QString base64this(const QByteArray& param) {
