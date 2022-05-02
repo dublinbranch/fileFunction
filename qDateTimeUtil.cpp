@@ -23,19 +23,6 @@ QDateTime hourlyFloor(const QDateTime& time) {
 }
 
 //--------------------------------------------------------------------------------------
-qint64 getSecondsUntilMidnight(const QTimeZone& time_zone) {
-	auto utc = QDateTime::currentDateTimeUtc();
-
-	QDateTime current_date_and_time =
-	    (time_zone != QTimeZone::utc()) ? utc.toTimeZone(time_zone) : utc;
-
-	auto midnight = current_date_and_time.addDays(1);
-	midnight.setTime(QTime{0, 0, 0});
-
-	return current_date_and_time.secsTo(midnight);
-}
-
-//--------------------------------------------------------------------------------------
 double TimespecV2::sec() const {
 	return floor(time);
 }
@@ -97,4 +84,14 @@ double TimespecV2::toDouble() const {
 
 TimespecV2::operator double() const {
 	return time;
+}
+
+QDateTime QDateTime2::getNextMidnight() const {
+	auto midnight = currentDateTime().addDays(1);
+	midnight.setTime(QTime{0, 0, 0});
+	return midnight;
+}
+
+qint64 QDateTime2::secToNextMidnight() const {
+	return currentDateTime().secsTo(getNextMidnight());
 }

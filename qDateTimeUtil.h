@@ -23,6 +23,14 @@ const QDateTime unixMidnight = QDateTime::fromSecsSinceEpoch(0, Qt::UTC);
 //small fuction for computin the seconds till the midnight if the current day
 qint64 getSecondsUntilMidnight(const QTimeZone& time_zone);
 
+class QDateTime2 : public QDateTime {
+      public:
+	QDateTime2(const QDateTime);
+	QDateTime2() = default;
+	QDateTime getNextMidnight() const;
+	qint64    secToNextMidnight() const;
+};
+
 //--------------------------------------------------------------------------------------
 //Wrrapper class around unix timestamp.
 
