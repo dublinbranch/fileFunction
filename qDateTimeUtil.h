@@ -25,7 +25,8 @@ qint64 getSecondsUntilMidnight(const QTimeZone& time_zone);
 
 class QDateTime2 : public QDateTime {
       public:
-	QDateTime2(const QDateTime);
+	QDateTime2(const QDateTime& val)
+	    : QDateTime(val){};
 	QDateTime2() = default;
 	QDateTime getNextMidnight() const;
 	qint64    secToNextMidnight() const;
