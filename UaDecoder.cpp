@@ -47,17 +47,18 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 	}
 	scoped.unlock();
 
-	auto       url = decoderUrl + "?ua=" + userAgent.toUtf8().toPercentEncoding();
+	auto url = decoderUrl + "?ua=" + userAgent.toUtf8().toPercentEncoding();
+	//useless to have a thread local, as normally live we have the decoder running on the same machine
 	CurlKeeper curl;
 	//should be on same machine and heavily used, normal time is around 1ms
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10);
 
 	auto res = urlGetContent2(url, true);
 	if (res.httpCode != 200) {
-			fileAppendContents(QSL("\n------\n %1 error %2 for decoding ua %3 ")
-			                        .arg(QDateTime::currentDateTime().toString(mysqlDateTimeFormat), res.result.data()) +
-			                    userAgent,
-			                "log/uaDecoder.log");
+		fileAppendContents(QSL("\n------\n %1 error %2 for decoding ua %3 ")
+		                           .arg(QDateTime::currentDateTime().toString(mysqlDateTimeFormat), res.result.data()) +
+		                       userAgent,
+		                   "log/uaDecoder.log");
 		return false;
 	}
 
