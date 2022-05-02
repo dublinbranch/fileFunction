@@ -1,8 +1,8 @@
 #ifndef QDATETIMEUTIL_H
 #define QDATETIMEUTIL_H
 
-#include <QTimeZone>
 #include <QDateTime>
+#include <QTimeZone>
 
 //--------------------------------------------------------------------------------------
 const QTimeZone UTC = QTimeZone("UTC");
@@ -23,38 +23,35 @@ const QDateTime unixMidnight = QDateTime::fromSecsSinceEpoch(0, Qt::UTC);
 //small fuction for computin the seconds till the midnight if the current day
 qint64 getSecondsUntilMidnight(const QTimeZone& time_zone);
 
-
 //--------------------------------------------------------------------------------------
 //Wrrapper class around unix timestamp.
 
 struct timespec;
 class TimespecV2 {
-public:
-    //This can easily handle microsecond precision data 53bit / 15.95digit, a unix ts is 10 digit
-    double time;
+      public:
+	//This can easily handle microsecond precision data 53bit / 15.95digit, a unix ts is 10 digit
+	double time;
 
-    double sec() const;
-    //This is what you want 99.9% of the time
-    double fractional() const;
+	double sec() const;
+	//This is what you want 99.9% of the time
+	double fractional() const;
 
-    //no idea why anyone will use those but let's leave them
-    uint   ms() const;
-    uint   ns() const;
+	//no idea why anyone will use those but let's leave them
+	uint ms() const;
+	uint ns() const;
 
+	auto operator<=>(const TimespecV2& t) const = default;
 
-    auto operator<=>(const TimespecV2& t) const = default;
+	TimespecV2() = default;
+	TimespecV2(double ts);
+	TimespecV2        operator-(const TimespecV2& rhs);
+	TimespecV2        operator-(const double& rhs);
+	timespec          toTimespec() const;
+	static TimespecV2 now();
+	void              setNow();
+	double            toDouble() const;
 
-    TimespecV2() = default;
-    TimespecV2(double ts);
-    TimespecV2        operator-(const TimespecV2& rhs);
-    TimespecV2        operator-(const double& rhs);
-    timespec          toTimespec() const;
-    static TimespecV2 now();
-    void              setNow();
-    double            toDouble() const;
-
-    operator double() const;
+	operator double() const;
 };
-
 
 #endif // QDATETIMEUTIL_H
