@@ -1,5 +1,6 @@
 #include "b64.h"
 #include "stringDefine.h"
+#include <QRegExp>
 
 QString base64this(const char* param) {
 	// no alloc o.O
@@ -26,6 +27,24 @@ QByteArray fromBase64(const QByteArray& url64, bool urlSafe) {
 
 QString fromBase64(const QString& url64, bool urlSafe) {
 	return fromBase64(url64.toUtf8(), urlSafe);
+}
+
+// https://stackoverflow.com/questions/12094280/qt-decode-binary-sequence-from-base64
+bool isB64Valid(QString input, bool checkLength) {
+	if (checkLength and (input.length() % 4 != 0))
+		return false;
+
+	auto found1 = QRegExp("^[A-Za-z0-9+/]+$").indexIn(input, QRegExp::CaretAtZero);
+	auto found2 = QRegExp("^[A-Za-z0-9+/]+=$").indexIn(input, QRegExp::CaretAtZero);
+	auto found3 = QRegExp("^[A-Za-z0-9+/]+==$").indexIn(input, QRegExp::CaretAtZero);
+
+	auto cond1 = found1 == -1;
+	auto cond2 = found2 == -1;
+	auto cond3 = found3 == -1;
+
+	if (cond1 && cond2 && cond3)
+		return false;
+	return true;
 }
 
 QString base64this(const QByteArray& param) {
