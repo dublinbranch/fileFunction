@@ -45,7 +45,8 @@ class DeviceRedux {
 	DeviceRedux() = default;
 	DeviceRedux(const QString& full);
 	void operator()(const QString& full);
-	;
+
+	operator QString() const;
 };
 
 class UaDecoder {

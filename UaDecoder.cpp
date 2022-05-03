@@ -133,3 +133,7 @@ void DeviceRedux::operator()(const QString& full) {
 	device = smartphone;
 	return;
 }
+
+DeviceRedux::operator QString() const {
+	return asString(device);
+}
