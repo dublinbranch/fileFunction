@@ -41,7 +41,7 @@ class TimespecV2 {
 	//This can easily handle microsecond precision data 53bit / 15.95digit, a unix ts is 10 digit
 	double time;
 
-	double sec() const;
+	int sec() const;
 	//This is what you want 99.9% of the time
 	double fractional() const;
 

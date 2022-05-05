@@ -23,7 +23,7 @@ QDateTime hourlyFloor(const QDateTime& time) {
 }
 
 //--------------------------------------------------------------------------------------
-double TimespecV2::sec() const {
+int TimespecV2::sec() const {
 	return floor(time);
 }
 
