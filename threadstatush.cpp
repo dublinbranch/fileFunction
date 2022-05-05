@@ -1,9 +1,10 @@
 #include "threadstatush.h"
 
 ThreadStatus threadStatus;
+
 //Just a default for the program who do not uses this technology
-ThreadStatus::Status               fakeLocalThreadStatus;
-thread_local ThreadStatus::Status* localThreadStatus = &fakeLocalThreadStatus;
+static thread_local ThreadStatus::Status localThreadStatusValue;
+thread_local ThreadStatus::Status*       localThreadStatus = &localThreadStatusValue;
 
 void ThreadStatus::Timing::addSqlTime(qint64 addMe) {
 	if (flush) {
