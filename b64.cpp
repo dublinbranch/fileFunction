@@ -30,21 +30,27 @@ QString fromBase64(const QString& url64, bool urlSafe) {
 }
 
 // https://stackoverflow.com/questions/12094280/qt-decode-binary-sequence-from-base64
-bool isB64Valid(QString input, bool checkLength) {
-	if (checkLength and (input.length() % 4 != 0))
-		return false;
+//bool isB64Valid(QString input, bool checkLength) {
+//	if (checkLength and (input.length() % 4 != 0))
+//		return false;
 
-	auto found1 = QRegExp("^[A-Za-z0-9+/]+$").indexIn(input, QRegExp::CaretAtZero);
-	auto found2 = QRegExp("^[A-Za-z0-9+/]+=$").indexIn(input, QRegExp::CaretAtZero);
-	auto found3 = QRegExp("^[A-Za-z0-9+/]+==$").indexIn(input, QRegExp::CaretAtZero);
+//	auto found1 = QRegExp("^[A-Za-z0-9+/]+$").indexIn(input, QRegExp::CaretAtZero);
+//	auto found2 = QRegExp("^[A-Za-z0-9+/]+=$").indexIn(input, QRegExp::CaretAtZero);
+//	auto found3 = QRegExp("^[A-Za-z0-9+/]+==$").indexIn(input, QRegExp::CaretAtZero);
 
-	auto cond1 = found1 == -1;
-	auto cond2 = found2 == -1;
-	auto cond3 = found3 == -1;
+//	auto cond1 = found1 == -1;
+//	auto cond2 = found2 == -1;
+//	auto cond3 = found3 == -1;
 
-	if (cond1 && cond2 && cond3)
-		return false;
-	return true;
+//	if (cond1 && cond2 && cond3)
+//		return false;
+//	return true;
+//}
+
+bool isB64ValidV2(const QString& input) {
+	auto decoded = QByteArray::fromBase64Encoding(input.toUtf8(), QByteArray::Base64Option::AbortOnBase64DecodingErrors);
+	auto ok      = decoded.decodingStatus == QByteArray::Base64DecodingStatus::Ok;
+	return ok;
 }
 
 QString base64this(const QByteArray& param) {
