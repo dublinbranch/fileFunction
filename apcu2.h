@@ -18,62 +18,38 @@ class APCU : private NoCopy {
 	APCU();
 	static APCU* getInstance();
 
-	struct Value {
-		std::any obj;
-		qint64   expireAt = 0;
-		Value()           = delete;
-		template <class T>
-		Value(std::shared_ptr<T>& _obj, int ttl) {
-			obj      = _obj;
-			expireAt = QDateTime::currentSecsSinceEpoch() + ttl;
-		}
+	struct Row {
+		//Corpus munus
+		Row() = delete;
+		Row(const std::string& _key, const std::any& _value, int ttl);
+
+		//Member
+		std::string key;
+		std::any    value;
+		uint        expireAt = 0;
+
 		bool expired() const;
 		bool expired(qint64 ts) const;
 	};
 
+	/**
+	 * We hide the implementation as multi index will kill compile time
+	 */
+	std::any fetchInner(const std::string& key);
+	void     storeInner(const std::string& _key, const std::any& _value, bool overwrite = false, int ttl = 60);
+
 	template <class T>
 	std::shared_ptr<T> fetch(const std::string& key) {
-		typename CacheType::iterator iter;
-		//we need to keep the lock, so we can copy the shared, to avoid it goes out scope while in our hands!
-		RWGuard scoped(&innerLock);
-		scoped.lockShared();
-
-		if (iter = cache.find(key); iter != cache.end()) {
-			if (!iter->second.expired()) {
-				hits++;
-				return any_cast<std::shared_ptr<T>>(iter->second.obj);
-			}
-			//unlock and just relock is bad, as will leave a GAP!
-			//you should unlock, restart the operation under full lock, and than erase...
-			//who cares, in a few second the GC will remove the record anyways
+		(void)key;
+		auto res = fetchInner(key);
+		if (res.has_value()) {
+			return any_cast<std::shared_ptr<T>>(res);
+		} else {
+			return nullptr;
 		}
-		miss++;
-		return nullptr;
 	}
-	QString info() const {
-		//Poor man APCU page -.-
-		double delta = QDateTime::currentSecsSinceEpoch() - startedAt;
-		auto   msg   = QSL(R"(
-	Cache size: %1
-	Hits:       %2 / %3s
-	Miss:       %4 / %5s
-	Insert:     %6 / %7s
-	Overwrite:  %8 / %9s
-	Delete:     %10 / %11s
-	)")
-		               .arg(cache.size())
-		               .arg(hits)
-		               .arg(hits / delta)
-		               .arg(miss)
-		               .arg(miss / delta) // 5
-		               .arg(insert)
-		               .arg(insert / delta)
-		               .arg(overwite)
-		               .arg(overwite / delta)
-		               .arg(deleted)
-		               .arg(deleted / delta);
-		return msg;
-	}
+
+	std::string info() const;
 
 	/**
 	 * @brief store will OVERWRITE IF IS FOUND
@@ -83,22 +59,14 @@ class APCU : private NoCopy {
 	 */
 	template <class T>
 	void store(const std::string& key, std::shared_ptr<T>& obj, int ttl = 60) {
-		auto    v = Value(obj, ttl);
-		RWGuard scoped(&innerLock);
-		scoped.lock();
-		if (auto iter = cache.find(key); iter != cache.end()) {
-			overwite++;
-			iter->second = std::move(v);
-		} else {
-			insert++;
-			cache.emplace(key, std::move(v));
-		}
+		std::any value = obj;
+		storeInner(key, value, true, ttl);
 	}
 
 	void clear();
 
 	//1 overwrite will NOT trigger 1 delete and 1 inserted
-	std::atomic<uint64_t> overwite;
+	std::atomic<uint64_t> overwrite;
 	std::atomic<uint64_t> insert;
 	std::atomic<uint64_t> deleted;
 	std::atomic<uint64_t> hits;
@@ -108,9 +76,6 @@ class APCU : private NoCopy {
 	void              garbageCollector_F2();
 	std::shared_mutex innerLock;
 	qint64            startedAt = 0;
-
-	using CacheType = std::unordered_map<std::string, Value>;
-	CacheType cache;
 
 	//	/**
 	//	 * @brief apcuTryStore
