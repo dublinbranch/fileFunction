@@ -1,6 +1,8 @@
 #include "apcu2.h"
 #include "unistd.h"
 
+#include <mutex>
+
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -37,8 +39,7 @@ APCU* APCU::getInstance() {
 std::any APCU::fetchInner(const std::string& key) {
 	auto& byKey = cache.get<ByKey>();
 
-	RWGuard scoped(&innerLock);
-	scoped.lockShared();
+	std::shared_lock lock(innerLock);
 
 	if (auto iter = byKey.find(key); iter != cache.end()) {
 		if (!iter->expired()) {
@@ -56,8 +57,7 @@ std::any APCU::fetchInner(const std::string& key) {
 void APCU::storeInner(const std::string& _key, const std::any& _value, bool _overwrite, int ttl) {
 	auto& byKey = cache.get<ByKey>();
 
-	RWGuard scoped(&innerLock);
-	scoped.lock();
+	std::unique_lock lock(innerLock);
 
 	if (auto iter = byKey.find(_key); iter != cache.end()) {
 		if (_overwrite) {
@@ -78,12 +78,12 @@ std::string APCU::info() const {
 	//Poor man APCU page -.-
 	double delta = QDateTime::currentSecsSinceEpoch() - startedAt;
 	auto   msg   = fmt::format(R"(
-		Cache size: {}
-		Hits:       {} / {}s
-		Miss:       {} / {}s
-		Insert:     {} / {}s
-		Overwrite:  {} / {}s
-		Delete:     {} / {}s
+		Cache size: {:>10}
+		Hits:       {:>10} / {:>8.0f}s
+		Miss:       {:>10} / {:>8.0f}s
+		Insert:     {:>10} / {:>8.0f}s
+		Overwrite:  {:>10} / {:>8.0f}s
+		Delete:     {:>10} / {:>8.0f}s
 		)",
 	                           cache.size(), hits, hits / delta, miss, miss / delta, // 5
 	                           insert, insert / delta, overwrite, overwrite / delta, deleted, deleted / delta);
@@ -115,8 +115,7 @@ void APCU::garbageCollector_F2() {
 		sleep(1);
 		auto now = QDateTime::currentSecsSinceEpoch();
 
-		RWGuard scoped(&innerLock);
-		scoped.lock();
+		std::unique_lock lock(innerLock);
 
 		auto upper = byExpire.upper_bound(now);
 		auto iter  = byExpire.begin();
