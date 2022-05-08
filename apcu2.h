@@ -4,7 +4,6 @@
 #include "fileFunction/mixin.h"
 #include "mapExtensor/rwguard.h"
 #include <QDateTime>
-#include <QHash>
 #include <QString>
 #include <any>
 #include <memory>
@@ -14,28 +13,26 @@
 #define QSL(str) QStringLiteral(str)
 void throwTypeError(const std::type_info* found, const std::type_info* expected);
 
-struct Value {
-	std::any obj;
-	qint64   expireAt = 0;
-	Value()           = delete;
-	template <class T>
-	Value(std::shared_ptr<T>& _obj, int ttl) {
-		obj      = _obj;
-		expireAt = QDateTime::currentSecsSinceEpoch() + ttl;
-	}
-	bool expired() const;
-	bool expired(qint64 ts) const;
-};
-
-template <class Key>
 class APCU : private NoCopy {
       public:
-	static APCU* create() {
-		return new APCU();
-	}
+	APCU();
+	static APCU* getInstance();
+
+	struct Value {
+		std::any obj;
+		qint64   expireAt = 0;
+		Value()           = delete;
+		template <class T>
+		Value(std::shared_ptr<T>& _obj, int ttl) {
+			obj      = _obj;
+			expireAt = QDateTime::currentSecsSinceEpoch() + ttl;
+		}
+		bool expired() const;
+		bool expired(qint64 ts) const;
+	};
 
 	template <class T>
-	std::shared_ptr<T> fetch(const Key& key) {
+	std::shared_ptr<T> fetch(const std::string& key) {
 		typename CacheType::iterator iter;
 		//we need to keep the lock, so we can copy the shared, to avoid it goes out scope while in our hands!
 		RWGuard scoped(&innerLock);
@@ -85,7 +82,7 @@ class APCU : private NoCopy {
 	 * @param ttl
 	 */
 	template <class T>
-	void store(const Key& key, std::shared_ptr<T>& obj, int ttl = 60) {
+	void store(const std::string& key, std::shared_ptr<T>& obj, int ttl = 60) {
 		auto    v = Value(obj, ttl);
 		RWGuard scoped(&innerLock);
 		scoped.lock();
@@ -108,16 +105,11 @@ class APCU : private NoCopy {
 	std::atomic<uint64_t> miss;
 
       private:
-	void garbageCollector_F2();
+	void              garbageCollector_F2();
 	std::shared_mutex innerLock;
 	qint64            startedAt = 0;
 
-	APCU() {
-		startedAt = QDateTime::currentSecsSinceEpoch();
-		new std::thread(&APCU::garbageCollector_F2, this);
-	}
-
-	using CacheType = std::unordered_map<Key, Value>;
+	using CacheType = std::unordered_map<std::string, Value>;
 	CacheType cache;
 
 	//	/**
@@ -141,24 +133,24 @@ class APCU : private NoCopy {
 };
 
 template <class T>
-void apcuStore(const QString& key, std::shared_ptr<T>& obj, int ttl = 60) {
-	//	auto a = APCU::create();
-	//	a->store(key, obj, ttl);
+void apcuStore(const std::string& key, std::shared_ptr<T>& obj, int ttl = 60) {
+	auto a = APCU::getInstance();
+	a->store(key, obj, ttl);
 }
 
 template <class T>
-void apcuStore(const QString& key, T& obj, int ttl = 60) {
+void apcuStore(const std::string& key, T& obj, int ttl = 60) {
 	auto copy = make_shared<T>(obj);
 	apcuStore(key, copy, ttl);
 }
 
 template <class T>
-std::shared_ptr<T> apcuFetch(const QString& key) {
-	//	auto a   = APCU::create();
-	//	auto res = a->fetch<T>(key);
-	//	if (res) {
-	//		return static_pointer_cast<T>(res);
-	//	}
+std::shared_ptr<T> apcuFetch(const std::string& key) {
+	auto a   = APCU::getInstance();
+	auto res = a->fetch<T>(key);
+	if (res) {
+		return static_pointer_cast<T>(res);
+	}
 	return nullptr;
 }
 void apcuClear();

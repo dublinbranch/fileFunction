@@ -2,17 +2,28 @@
 #include "unistd.h"
 
 using namespace std;
+static APCU theAPCU;
+
+APCU::APCU()
+{
+	startedAt = QDateTime::currentSecsSinceEpoch();
+	new std::thread(&APCU::garbageCollector_F2, this);
+}
+
+APCU *APCU::getInstance() {
+	return &theAPCU;
+}
 
 //only used internally
 void throwTypeError(const type_info* found, const type_info* expected) {
 	throw ExceptionV2(QSL("Wrong type!! Found %1, expected %2, recheck where this key is used, maybe you have a collision").arg(found->name()).arg(expected->name()));
 }
 
-bool Value::expired() const {
+bool APCU::Value::expired() const {
 	return QDateTime::currentSecsSinceEpoch() > expireAt;
 }
 
-bool Value::expired(qint64 ts) const {
+bool APCU::Value::expired(qint64 ts) const {
 	return ts > expireAt;
 }
 
@@ -61,16 +72,17 @@ bool Value::expired(qint64 ts) const {
 }
 */
 
-template<class Key>
-void APCU<Key>::garbageCollector_F2() {
+
+
+void APCU::garbageCollector_F2() {
 	while (true) {
-		sleep(60);
+		sleep(1);
 		quint32 scanned = 0;
 		auto    now     = QDateTime::currentSecsSinceEpoch();
-		
+
 		RWGuard scoped(&innerLock);
 		scoped.lock();
-		
+
 		auto iter = cache.begin();
 		auto end  = cache.end();
 		while (iter != end) {
@@ -81,7 +93,7 @@ void APCU<Key>::garbageCollector_F2() {
 				std::this_thread::yield();
 				scoped.lock();
 			}
-			
+
 			if (iter->second.expired(now)) {
 				iter = cache.erase(iter);
 				deleted++;
