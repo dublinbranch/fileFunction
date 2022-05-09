@@ -42,10 +42,10 @@ std::any APCU::fetchInner(const std::string& key) {
 	std::shared_lock lock(innerLock);
 
 	if (auto iter = byKey.find(key); iter != cache.end()) {
-		if (!iter->expired()) {
+		
 			hits++;
 			return iter->value;
-		}
+		
 		//unlock and just relock is bad, as will leave a GAP!
 		//you should unlock, restart the operation under full lock, and than erase...
 		//who cares, in a few second the GC will remove the record anyways
@@ -78,12 +78,14 @@ std::string APCU::info() const {
 	//Poor man APCU page -.-
 	double delta = QDateTime::currentSecsSinceEpoch() - startedAt;
 	auto   msg   = fmt::format(R"(
+<pre>
 		Cache size: {:>10}
 		Hits:       {:>10} / {:>8.0f}s
 		Miss:       {:>10} / {:>8.0f}s
 		Insert:     {:>10} / {:>8.0f}s
 		Overwrite:  {:>10} / {:>8.0f}s
 		Delete:     {:>10} / {:>8.0f}s
+</pre>
 		)",
 	                           cache.size(), hits, hits / delta, miss, miss / delta, // 5
 	                           insert, insert / delta, overwrite, overwrite / delta, deleted, deleted / delta);
