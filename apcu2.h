@@ -103,19 +103,32 @@ void apcuStore(const std::string& key, std::shared_ptr<T>& obj, int ttl = 60) {
 }
 
 template <class T>
+void apcuStore(const QString& key, std::shared_ptr<T>& obj, int ttl = 60) {
+	apcuStore(key.toStdString(), obj, ttl);
+}
+
+template <class T>
 void apcuStore(const std::string& key, T& obj, int ttl = 60) {
 	auto copy = make_shared<T>(obj);
 	apcuStore(key, copy, ttl);
 }
 
 template <class T>
+void apcuStore(const QString& key, T& obj, int ttl = 60) {
+	apcuStore(key.toStdString(), obj, ttl);
+}
+
+template <class T>
 std::shared_ptr<T> apcuFetch(const std::string& key) {
 	auto a   = APCU::getInstance();
 	auto res = a->fetch<T>(key);
-	if (res) {
-		return static_pointer_cast<T>(res);
-	}
-	return nullptr;
+	return res;
 }
+
+template <class T>
+std::shared_ptr<T> apcuFetch(const QString& key) {
+	return apcuFetch<T>(key.toStdString());
+}
+
 void apcuClear();
 int  apcuTest();
