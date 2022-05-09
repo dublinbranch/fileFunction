@@ -17,16 +17,12 @@ QString toBase64(const QString& url, bool urlSafe) {
 	return url.toUtf8().toBase64();
 }
 
-QByteArray fromBase64(const QByteArray& url64, bool urlSafe) {
-	auto b = QByteArray::Base64Option::Base64UrlEncoding;
-	if (urlSafe) {
-		return QByteArray::fromBase64(url64, b);
-	}
-	return QByteArray::fromBase64(url64);
+QByteArray fromBase64(const QByteArray& byteArray, QByteArray::Base64Option option) {
+	return QByteArray::fromBase64(byteArray, option);
 }
 
-QString fromBase64(const QString& url64, bool urlSafe) {
-	return fromBase64(url64.toUtf8(), urlSafe);
+QByteArray fromBase64UrlSafe(const QByteArray& url64) {
+	return fromBase64(url64, QByteArray::Base64Option::Base64UrlEncoding);
 }
 
 // https://stackoverflow.com/questions/12094280/qt-decode-binary-sequence-from-base64
