@@ -80,4 +80,80 @@ int apcuTest() {
 	return 0;
 }
 
+
+/**********************/
+
+#include "fileFunction/apcu2.h"
+#include "fileFunction/randutil.h"
+#include <thread>
+
+struct Value {
+	string  miao;
+	QString bau;
+};
+
+void readCache() {
+	/*/
+	while (true) {
+	        /*/
+	for (int i = 0; i < 1e8; i++) {
+		/**/
+		auto k = rand(1, 1e5);
+
+		auto key = to_string(k);
+		auto v   = apcuFetch<Value>(key);
+		if (v && v->miao != key) {
+			int x = 0;
+			(void)x;
+		}
+	}
+}
+void spamCache() {
+	/*/
+	while (true) {
+	/*/
+	for (int i = 0; i < 1e6; i++) {
+		/**/
+		auto  k = rand(1, 1e5);
+		Value v;
+		v.miao = to_string(k);
+		apcuStore(v.miao, v, 2);
+	}
+}
+void info() {
+	while (true) {
+		sleep(1);
+		std::puts(APCU::getInstance()->info().data());
+	}
+}
+void executeHc1() {
+	vector<thread*> ths;
+	ths.push_back(new thread(spamCache));
+//	ths.push_back(new thread(spamCache));
+//	ths.push_back(new thread(spamCache));
+	ths.push_back(new thread(readCache));
+	ths.push_back(new thread(readCache));
+	ths.push_back(new thread(readCache));
+	ths.push_back(new thread(readCache));
+	ths.push_back(new thread(info));
+
+	for (auto& t : ths) {
+		t->join();
+	}
+	//testGetDomain_subDomain();
+	//testGetDomain_subDomain2();
+
+	//auto x = Locales::isAllowed(QSL("it_US"), Dest::iac);
+	//auto y = Locales::byDestNation(Dest::iac, "IT");
+
+	//	int y = 0;
+	//	while (1) {
+	//		y++;
+	//		fmt::print("{}\n", y);
+	//		auto r = RD::Range::fromOcodeRty("1", "", 2);
+	//	}
+}
+
+
+
 #endif
