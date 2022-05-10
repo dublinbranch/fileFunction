@@ -2,9 +2,7 @@
 
 #include "QStacker/exceptionv2.h"
 #include "fileFunction/mixin.h"
-#include "mapExtensor/rwguard.h"
 #include <QDateTime>
-#include <QHash>
 #include <QString>
 #include <any>
 #include <memory>
@@ -14,69 +12,43 @@
 #define QSL(str) QStringLiteral(str)
 void throwTypeError(const std::type_info* found, const std::type_info* expected);
 
-struct Value {
-	std::any obj;
-	qint64   expireAt = 0;
-	Value()           = delete;
-	template <class T>
-	Value(std::shared_ptr<T>& _obj, int ttl) {
-		obj      = _obj;
-		expireAt = QDateTime::currentSecsSinceEpoch() + ttl;
-	}
-	bool expired() const;
-	bool expired(qint64 ts) const;
-};
-
-template <class Key>
 class APCU : private NoCopy {
       public:
-	static APCU* create() {
-		return new APCU();
-	}
+	APCU();
+	static APCU* getInstance();
+
+	struct Row {
+		//Corpus munus
+		Row() = delete;
+		Row(const std::string& _key, const std::any& _value, int ttl);
+
+		//Member
+		std::string key;
+		std::any    value;
+		uint        expireAt = 0;
+
+		bool expired() const;
+		bool expired(qint64 ts) const;
+	};
+
+	/**
+	 * We hide the implementation as multi index will kill compile time
+	 */
+	std::any fetchInner(const std::string& key);
+	void     storeInner(const std::string& _key, const std::any& _value, bool overwrite = false, int ttl = 60);
 
 	template <class T>
-	std::shared_ptr<T> fetch(const Key& key) {
-		typename CacheType::iterator iter;
-		//we need to keep the lock, so we can copy the shared, to avoid it goes out scope while in our hands!
-		RWGuard scoped(&innerLock);
-		scoped.lockShared();
-
-		if (iter = cache.find(key); iter != cache.end()) {
-			if (!iter->second.expired()) {
-				hits++;
-				return any_cast<std::shared_ptr<T>>(iter->second.obj);
-			}
-			//unlock and just relock is bad, as will leave a GAP!
-			//you should unlock, restart the operation under full lock, and than erase...
-			//who cares, in a few second the GC will remove the record anyways
+	std::shared_ptr<T> fetch(const std::string& key) {
+		(void)key;
+		auto res = fetchInner(key);
+		if (res.has_value()) {
+			return any_cast<std::shared_ptr<T>>(res);
+		} else {
+			return nullptr;
 		}
-		miss++;
-		return nullptr;
 	}
-	QString info() const {
-		//Poor man APCU page -.-
-		double delta = QDateTime::currentSecsSinceEpoch() - startedAt;
-		auto   msg   = QSL(R"(
-	Cache size: %1
-	Hits:       %2 / %3s
-	Miss:       %4 / %5s
-	Insert:     %6 / %7s
-	Overwrite:  %8 / %9s
-	Delete:     %10 / %11s
-	)")
-		               .arg(cache.size())
-		               .arg(hits)
-		               .arg(hits / delta)
-		               .arg(miss)
-		               .arg(miss / delta) // 5
-		               .arg(insert)
-		               .arg(insert / delta)
-		               .arg(overwite)
-		               .arg(overwite / delta)
-		               .arg(deleted)
-		               .arg(deleted / delta);
-		return msg;
-	}
+
+	std::string info() const;
 
 	/**
 	 * @brief store will OVERWRITE IF IS FOUND
@@ -85,40 +57,24 @@ class APCU : private NoCopy {
 	 * @param ttl
 	 */
 	template <class T>
-	void store(const Key& key, std::shared_ptr<T>& obj, int ttl = 60) {
-		auto    v = Value(obj, ttl);
-		RWGuard scoped(&innerLock);
-		scoped.lock();
-		if (auto iter = cache.find(key); iter != cache.end()) {
-			overwite++;
-			iter->second = std::move(v);
-		} else {
-			insert++;
-			cache.emplace(key, std::move(v));
-		}
+	void store(const std::string& key, std::shared_ptr<T>& obj, int ttl = 60) {
+		std::any value = obj;
+		storeInner(key, value, true, ttl);
 	}
 
 	void clear();
 
 	//1 overwrite will NOT trigger 1 delete and 1 inserted
-	std::atomic<uint64_t> overwite;
+	std::atomic<uint64_t> overwrite;
 	std::atomic<uint64_t> insert;
 	std::atomic<uint64_t> deleted;
 	std::atomic<uint64_t> hits;
 	std::atomic<uint64_t> miss;
 
       private:
-	void garbageCollector_F2();
+	void              garbageCollector_F2();
 	std::shared_mutex innerLock;
 	qint64            startedAt = 0;
-
-	APCU() {
-		startedAt = QDateTime::currentSecsSinceEpoch();
-		new std::thread(&APCU::garbageCollector_F2, this);
-	}
-
-	using CacheType = std::unordered_map<Key, Value>;
-	CacheType cache;
 
 	//	/**
 	//	 * @brief apcuTryStore
@@ -141,25 +97,38 @@ class APCU : private NoCopy {
 };
 
 template <class T>
-void apcuStore(const QString& key, std::shared_ptr<T>& obj, int ttl = 60) {
-	//	auto a = APCU::create();
-	//	a->store(key, obj, ttl);
+void apcuStore(const std::string& key, std::shared_ptr<T>& obj, int ttl = 60) {
+	auto a = APCU::getInstance();
+	a->store(key, obj, ttl);
 }
 
 template <class T>
-void apcuStore(const QString& key, T& obj, int ttl = 60) {
+void apcuStore(const QString& key, std::shared_ptr<T>& obj, int ttl = 60) {
+	apcuStore(key.toStdString(), obj, ttl);
+}
+
+template <class T>
+void apcuStore(const std::string& key, T& obj, int ttl = 60) {
 	auto copy = make_shared<T>(obj);
 	apcuStore(key, copy, ttl);
 }
 
 template <class T>
-std::shared_ptr<T> apcuFetch(const QString& key) {
-	//	auto a   = APCU::create();
-	//	auto res = a->fetch<T>(key);
-	//	if (res) {
-	//		return static_pointer_cast<T>(res);
-	//	}
-	return nullptr;
+void apcuStore(const QString& key, T& obj, int ttl = 60) {
+	apcuStore(key.toStdString(), obj, ttl);
 }
+
+template <class T>
+std::shared_ptr<T> apcuFetch(const std::string& key) {
+	auto a   = APCU::getInstance();
+	auto res = a->fetch<T>(key);
+	return res;
+}
+
+template <class T>
+std::shared_ptr<T> apcuFetch(const QString& key) {
+	return apcuFetch<T>(key.toStdString());
+}
+
 void apcuClear();
 int  apcuTest();
