@@ -43,10 +43,14 @@ QByteArray fromBase64UrlSafe(const QByteArray& url64) {
 //	return true;
 //}
 
-bool isB64ValidV2(const QString& input) {
-	auto decoded = QByteArray::fromBase64Encoding(input.toUtf8(), QByteArray::Base64Option::AbortOnBase64DecodingErrors);
+bool isB64Valid(const QByteArray& input) {
+	auto decoded = QByteArray::fromBase64Encoding(input, QByteArray::Base64Option::AbortOnBase64DecodingErrors);
 	auto ok      = decoded.decodingStatus == QByteArray::Base64DecodingStatus::Ok;
 	return ok;
+}
+
+bool isB64Valid(const QString& input) {
+	return isB64Valid(input.toUtf8());
 }
 
 QString base64this(const QByteArray& param) {

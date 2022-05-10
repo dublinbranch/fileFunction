@@ -1,89 +1,138 @@
 #include "apcu2.h"
 #include "unistd.h"
 
+#include <mutex>
+
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
+
+#include "fmt/includeMe.h"
+
 using namespace std;
+static APCU theAPCU;
+
+struct ByExpire {};
+struct ByKey {};
+
+using boost::multi_index_container;
+using namespace boost::multi_index;
+
+struct ApcuCache_index : indexed_by<
+                             hashed_unique<
+                                 tag<ByKey>, BOOST_MULTI_INDEX_MEMBER(APCU::Row, std::string, key)>,
+                             ordered_non_unique<
+                                 tag<ByExpire>, BOOST_MULTI_INDEX_MEMBER(APCU::Row, uint, expireAt)>> {};
+
+typedef multi_index_container<APCU::Row, ApcuCache_index> ApcuCache;
+ApcuCache                                                 cache;
+APCU::APCU() {
+	startedAt = QDateTime::currentSecsSinceEpoch();
+	new std::thread(&APCU::garbageCollector_F2, this);
+}
+
+APCU* APCU::getInstance() {
+	return &theAPCU;
+}
+
+std::any APCU::fetchInner(const std::string& key) {
+	auto& byKey = cache.get<ByKey>();
+
+	std::shared_lock lock(innerLock);
+
+	if (auto iter = byKey.find(key); iter != cache.end()) {
+		
+			hits++;
+			return iter->value;
+		
+		//unlock and just relock is bad, as will leave a GAP!
+		//you should unlock, restart the operation under full lock, and than erase...
+		//who cares, in a few second the GC will remove the record anyways
+	}
+	miss++;
+	return std::any();
+}
+
+void APCU::storeInner(const std::string& _key, const std::any& _value, bool _overwrite, int ttl) {
+	auto& byKey = cache.get<ByKey>();
+
+	std::unique_lock lock(innerLock);
+
+	if (auto iter = byKey.find(_key); iter != cache.end()) {
+		if (_overwrite) {
+			overwrite++;
+
+			auto old     = *iter;
+			old.value    = _value;
+			old.expireAt = QDateTime::currentSecsSinceEpoch() + ttl;
+			byKey.replace(iter, Row(_key, _value, ttl));
+		}
+	} else {
+		insert++;
+		cache.emplace(Row(_key, _value, ttl));
+	}
+}
+
+std::string APCU::info() const {
+	//Poor man APCU page -.-
+	double delta = QDateTime::currentSecsSinceEpoch() - startedAt;
+	auto   msg   = fmt::format(R"(
+<pre>
+		Cache size: {:>10}
+		Hits:       {:>10} / {:>8.0f}s
+		Miss:       {:>10} / {:>8.0f}s
+		Insert:     {:>10} / {:>8.0f}s
+		Overwrite:  {:>10} / {:>8.0f}s
+		Delete:     {:>10} / {:>8.0f}s
+</pre>
+		)",
+	                           cache.size(), hits, hits / delta, miss, miss / delta, // 5
+	                           insert, insert / delta, overwrite, overwrite / delta, deleted, deleted / delta);
+	return msg;
+}
 
 //only used internally
 void throwTypeError(const type_info* found, const type_info* expected) {
 	throw ExceptionV2(QSL("Wrong type!! Found %1, expected %2, recheck where this key is used, maybe you have a collision").arg(found->name()).arg(expected->name()));
 }
 
-bool Value::expired() const {
+APCU::Row::Row(const std::string& _key, const std::any& _value, int ttl) {
+	key      = _key;
+	value    = _value;
+	expireAt = QDateTime::currentSecsSinceEpoch() + ttl;
+}
+
+bool APCU::Row::expired() const {
 	return QDateTime::currentSecsSinceEpoch() > expireAt;
 }
 
-bool Value::expired(qint64 ts) const {
+bool APCU::Row::expired(qint64 ts) const {
 	return ts > expireAt;
 }
 
-/*
- * void APCU::garbageCollector_F2() {
-        while (true) {
-                sleep(1);
-                quint32 scanned = 0;
-                quint32 erased  = 0;
-                auto    now     = QDateTime::currentSecsSinceEpoch();
-
-                LockGuardV2 scoped(&innerLock);
-
-                while (true) {
-                        scanned++;
-                        //Redis alike old gen gc collector
-                        if (scanned % 100 == 0) {
-                                scoped.unlock();
-                                if (erased < 25) {
-                                        break;
-                                }
-                                erased = 0;
-                                //this will deschedule this thread. So if someone else has job to do it can
-                                std::this_thread::yield();
-                                scoped.lock();
-                        }
-                        //take a random bucket
-                        auto bucket = random() % (cache.bucket_count() - 1);
-                        if (auto size = cache.bucket_size(bucket); size) { //if there is something inside
-                                //hashmap iterator can not jump, is only incremental, so instead of doing a long jump, we will do a small one now!
-                                auto skip = 0;
-                                if (size > 1) {
-                                        skip = random() % (size - 1);
-                                }
-
-                                auto element = std::next(cache.begin(bucket), skip);
-                                if (element->second.expired(now)) {
-                                        //Local iterator is , no idea but you have to search again to get the full one
-                                        cache.erase(element->first);
-                                        deleted++;
-                                        continue;
-                                }
-                        }
-                }
-        }
-}
-*/
-
-template<class Key>
-void APCU<Key>::garbageCollector_F2() {
+void APCU::garbageCollector_F2() {
+	auto& byExpire = cache.get<ByExpire>();
 	while (true) {
-		sleep(60);
-		quint32 scanned = 0;
-		auto    now     = QDateTime::currentSecsSinceEpoch();
-		
-		RWGuard scoped(&innerLock);
-		scoped.lock();
-		
-		auto iter = cache.begin();
-		auto end  = cache.end();
-		while (iter != end) {
-			scanned++;
-			if (scanned % 500 == 0) {
-				scoped.unlock();
-				//this will deschedule this thread. So if someone else has job to do it can
-				std::this_thread::yield();
-				scoped.lock();
+		sleep(1);
+		auto now = QDateTime::currentSecsSinceEpoch();
+
+		std::unique_lock lock(innerLock);
+
+		auto upper = byExpire.upper_bound(now);
+		auto iter  = byExpire.begin();
+
+		while (true) {
+			//You can not have an OR condition in the for ?
+			auto b = iter == byExpire.end();
+			auto c = iter == upper;
+			if (b || c) {
+				break;
 			}
-			
-			if (iter->second.expired(now)) {
-				iter = cache.erase(iter);
+			auto& row = *iter;
+			(void)row;
+			if (iter->expired(now)) {
+				iter = byExpire.erase(iter);
 				deleted++;
 				continue;
 			} else {
