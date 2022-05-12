@@ -5,7 +5,9 @@
 #include <QTimeZone>
 
 //--------------------------------------------------------------------------------------
-const QTimeZone UTC = QTimeZone("UTC");
+const QTimeZone UTC        = QTimeZone("UTC");
+const QTimeZone LosAngeles = QTimeZone("America/Los_Angeles");
+
 //this should not be here!
 const QDateTime unixMidnight = QDateTime::fromSecsSinceEpoch(0, Qt::UTC);
 
