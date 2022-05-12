@@ -488,7 +488,7 @@ FPCRes::operator bool() {
 }
 
 // for debug
-void logWithTime(QString logFile, QString msg) {
+void logWithTime(const QString& logFile, const QString& msg) {
 	auto now    = QDateTime::currentDateTimeUtc().toString(mysqlDateTimeFormat);
 	auto logMsg = QSL("%1 UTC\n%2\n")
 	                  .arg(now, msg);

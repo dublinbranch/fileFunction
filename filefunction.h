@@ -74,4 +74,4 @@ bool softlink(const QString& source, const QString& dest, bool quiet = false);
 // HLParam::quiet | HLParam::eraseOld
 QString hardlink(const QString& source, const QString& dest, HLParam param = HLParam::eraseOld);
 
-void logWithTime(QString logFile, QString msg);
+void logWithTime(const QString& logFile, const QString& msg);
