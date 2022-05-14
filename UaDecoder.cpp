@@ -48,8 +48,8 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 	scoped.unlock();
 
 	auto url = decoderUrl + "?ua=" + userAgent.toUtf8().toPercentEncoding();
-	//useless to have a thread local, as normally live we have the decoder running on the same machine
-	CurlKeeper curl;
+	//is just annoying to create a new dns resolver thread each time and have a spam in the debugger
+	thread_local CurlKeeper curl;
 	//should be on same machine and heavily used, normal time is around 1ms
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 10);
 
