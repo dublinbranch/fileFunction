@@ -576,21 +576,20 @@ QByteArray QAESEncryption::removePadding(const QByteArray& rawText) {
 
 #include <QCryptographicHash>
 
-
 const QString    key("hoSCeLzlLyVg27ShQFFhjOUeWz9hAIUfHo39nxWIbJPkbzf");
 const QString    iv("ck6GHD7IfXiyldADbPNfrr7yEnH946IJcfGLWRDbduf412f");
 const QByteArray hashKey = QCryptographicHash::hash(key.toLocal8Bit(), QCryptographicHash::Sha256);
 const QByteArray hashIV  = QCryptographicHash::hash(iv.toLocal8Bit(), QCryptographicHash::Md5);
-QAESEncryption   encryption{QAESEncryption::AES_256, QAESEncryption::CBC};
 
 QByteArray encodeAes(const QByteArray& string) {
-	QByteArray encodeText = encryption.encode(string, hashKey, hashIV);
+	QAESEncryption encryption{QAESEncryption::AES_256, QAESEncryption::CBC};
+	QByteArray     encodeText = encryption.encode(string, hashKey, hashIV);
 	return encodeText;
 }
 
 QByteArray decodeAes(QByteArray encoded) {
-	QByteArray decodeText    = encryption.decode(encoded, hashKey, hashIV);
-	auto       decodedString = QByteArray(encryption.removePadding(decodeText));
+	QAESEncryption encryption{QAESEncryption::AES_256, QAESEncryption::CBC};
+	QByteArray     decodeText    = encryption.decode(encoded, hashKey, hashIV);
+	auto           decodedString = QByteArray(encryption.removePadding(decodeText));
 	return decodedString;
 }
-
