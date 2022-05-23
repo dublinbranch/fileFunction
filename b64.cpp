@@ -1,6 +1,6 @@
 #include "b64.h"
 #include "stringDefine.h"
-#include <QRegExp>
+#include <QCryptographicHash>
 
 QString base64this(const char* param) {
 	// no alloc o.O
@@ -48,18 +48,18 @@ QString fromBase64(const QString& url64, bool urlSafe) {
 //}
 
 bool isB64Valid(const QByteArray& input, bool urlSafe) {
-    QByteArray::FromBase64Result decoded;
-    if (urlSafe) {
-        decoded = QByteArray::fromBase64Encoding(input, QByteArray::Base64Option::AbortOnBase64DecodingErrors | QByteArray::Base64Option::Base64UrlEncoding);
-    } else {
-        decoded = QByteArray::fromBase64Encoding(input, QByteArray::Base64Option::AbortOnBase64DecodingErrors);
-    }
-    auto ok = decoded.decodingStatus == QByteArray::Base64DecodingStatus::Ok;
+	QByteArray::FromBase64Result decoded;
+	if (urlSafe) {
+		decoded = QByteArray::fromBase64Encoding(input, QByteArray::Base64Option::AbortOnBase64DecodingErrors | QByteArray::Base64Option::Base64UrlEncoding);
+	} else {
+		decoded = QByteArray::fromBase64Encoding(input, QByteArray::Base64Option::AbortOnBase64DecodingErrors);
+	}
+	auto ok = decoded.decodingStatus == QByteArray::Base64DecodingStatus::Ok;
 	return ok;
 }
 
 bool isB64Valid(const QString& input, bool urlSafe) {
-    return isB64Valid(input.toUtf8(), urlSafe);
+	return isB64Valid(input.toUtf8(), urlSafe);
 }
 
 QString base64this(const QByteArray& param) {
@@ -103,4 +103,15 @@ QString base64Nullable4Where(const QString& param, bool emptyAsNull) {
 		return " IS NULL ";
 	}
 	return " = " + val;
+}
+
+QByteArray shortMd5(const QByteArray& string) {
+	auto hashed = QCryptographicHash::hash((string), QCryptographicHash::Md5).toHex();
+	// take first 8 bytes (16 hexadecimal digits)
+	auto truncated = hashed.left(16);
+	return truncated;
+}
+
+QByteArray shortMd5(const QString& string) {
+	return shortMd5(string.toUtf8());
 }
