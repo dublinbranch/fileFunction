@@ -44,7 +44,8 @@ class TimespecV2 {
 	double time;
 
 	int sec() const;
-	//This is what you want 99.9% of the time, and will return 12344.55678
+
+	//this will return 0.12345 clipping out the integer part
 	double fractional() const;
 
 	//no idea why anyone will use those but let's leave them
