@@ -105,13 +105,18 @@ QString base64Nullable4Where(const QString& param, bool emptyAsNull) {
 	return " = " + val;
 }
 
-QByteArray shortMd5(const QByteArray& string) {
-	auto hashed = QCryptographicHash::hash((string), QCryptographicHash::Md5).toHex();
+QByteArray shortMd5(const QByteArray& string, bool hex) {
+	auto hashed = QCryptographicHash::hash((string), QCryptographicHash::Md5);
+	if (hex) {
+		
+	}else{
+		
+	}
 	// take first 8 bytes (16 hexadecimal digits)
 	auto truncated = hashed.left(16);
 	return truncated;
 }
 
-QByteArray shortMd5(const QString& string) {
-	return shortMd5(string.toUtf8());
+QByteArray shortMd5(const QString& string, bool hex) {
+	return shortMd5(string.toUtf8(), hex);
 }

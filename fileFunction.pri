@@ -5,6 +5,7 @@ SOURCES += \
     $$PWD/apcu2.cpp \
     $$PWD/apcuTest.cpp \
     $$PWD/b64.cpp \
+    $$PWD/crc.cpp \
     $$PWD/filefunction.cpp \
 	$$PWD/folder.cpp \
 	$$PWD/Qt-AES/qaesencryption.cpp \
@@ -21,6 +22,7 @@ HEADERS += \
 	$$PWD/UaDecoder.h \
 	$$PWD/apcu2.h \
 	$$PWD/b64.h \
+	$$PWD/crc.h \
 	$$PWD/ffCommon.h \
 	$$PWD/filefunction.h \
 	$$PWD/folder.h \

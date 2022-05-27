@@ -19,7 +19,7 @@ QString base64Nullable(const QString& param, bool emptyAsNull = false);
 QString base64Nullable(const QString* param, bool emptyAsNull = false);
 QString base64Nullable4Where(const QString& param, bool emptyAsNull = false);
 
-QByteArray shortMd5(const QByteArray& string);
-QByteArray shortMd5(const QString& string);
+[[deprecated("why you want hex and short ?")]] QByteArray shortMd5(const QByteArray& string);
+[[deprecated("why you want hex and short ?")]] QByteArray shortMd5(const QString& string);
 
 #endif // B64_H
