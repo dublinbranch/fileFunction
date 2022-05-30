@@ -108,9 +108,8 @@ QString base64Nullable4Where(const QString& param, bool emptyAsNull) {
 QByteArray shortMd5(const QByteArray& string, bool hex) {
 	auto hashed = QCryptographicHash::hash((string), QCryptographicHash::Md5);
 	if (hex) {
-		
-	}else{
-		
+
+	} else {
 	}
 	// take first 8 bytes (16 hexadecimal digits)
 	auto truncated = hashed.left(16);
