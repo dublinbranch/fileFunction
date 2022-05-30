@@ -31,6 +31,7 @@ class QDateTime2 : public QDateTime {
 	    : QDateTime(val){};
 	QDateTime2() = default;
 	QDateTime getNextMidnight() const;
+	QDateTime getMidnight() const;
 	qint64    secToNextMidnight() const;
 };
 

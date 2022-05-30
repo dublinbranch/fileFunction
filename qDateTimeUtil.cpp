@@ -92,6 +92,12 @@ QDateTime QDateTime2::getNextMidnight() const {
 	return midnight;
 }
 
+QDateTime QDateTime2::getMidnight() const {
+	auto midnight = *this;
+	midnight.setTime(QTime{0, 0, 0});
+	return midnight;
+}
+
 qint64 QDateTime2::secToNextMidnight() const {
 	return currentDateTime().secsTo(getNextMidnight());
 }
