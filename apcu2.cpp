@@ -112,6 +112,7 @@ bool APCU::Row::expired(qint64 ts) const {
 }
 
 void APCU::garbageCollector_F2() {
+    //TODO On program exit stop this gc operation, else we will have double free problem
 	auto& byExpire = cache.get<ByExpire>();
 	while (true) {
 		sleep(1);
