@@ -60,7 +60,7 @@ class UaDecoder {
 	bool        ok      = false;
 	QString     osName;
 	QString     osVersion;
-	int64_t     browserVersion = 0;
+	float       browserVersion = 0;
 	QString     browserName;
 	QString     device;
 	DeviceRedux deviceRDX;

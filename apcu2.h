@@ -108,13 +108,13 @@ void apcuStore(const QString& key, std::shared_ptr<T>& obj, int ttl = 60) {
 }
 
 template <class T>
-void apcuStore(const std::string& key, T& obj, int ttl = 60) {
-	auto copy = make_shared<T>(obj);
+void apcuStore(const std::string& key, const T& obj, int ttl = 60) {
+    auto copy = std::make_shared<T>(obj);
 	apcuStore(key, copy, ttl);
 }
 
 template <class T>
-void apcuStore(const QString& key, T& obj, int ttl = 60) {
+void apcuStore(const QString& key, const T& obj, int ttl = 60) {
 	apcuStore(key.toStdString(), obj, ttl);
 }
 
