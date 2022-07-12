@@ -13,6 +13,7 @@ SOURCES += \
     $$PWD/randutil.cpp \
     $$PWD/snowflake.cpp \
 	$$PWD/sourcelocation.cpp \
+	$$PWD/localev2.cpp \
     $$PWD/threadstatush.cpp
 
 HEADERS += \
@@ -37,6 +38,7 @@ HEADERS += \
 	$$PWD/snowflake.h \
 	$$PWD/sourcelocation.h \
 	$$PWD/stringDefine.h \
+	$$PWD/localev2.h \
 	$$PWD/threadstatush.h
 # - SETUP -
 # zypper in libzip-devel
