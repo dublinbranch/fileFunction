@@ -1,12 +1,11 @@
 #include "localev2.h"
 #include "QStacker/asstring.h"
-
-#include "errorlogger.h"
+#include "QStacker/httpexception.h"
 #include "fileFunction/GeoLite2PP/GeoLite2PP.hpp"
-#include "funkz.h"
-#include "geoipdata.h"
 
+#ifdef localeWithMaxMind
 extern GeoLite2PP::DB* mmdb;
+#endif
 
 Locale::Locale(const QString& string, QString* ip) {
 	*this = decodeLocale(string, ip);
@@ -45,9 +44,7 @@ QString Locale::getString(const QString& style) const {
 		    .arg(this->nation.toLower());
 	}
 
-	saveError(ErrorLevel::warning, QSL("Invalid style \"%1\" for locale").arg(style));
-
-	return QString();
+	throw ExceptionV2(QSL("Invalid style \"%1\" for locale").arg(style));
 }
 
 QVector<QStringRef> splitM1(QStringRef o) {
@@ -63,11 +60,15 @@ QVector<QStringRef> splitM1(QStringRef o) {
 
 Locale from2letter(const QStringRef& locale, QString* ip) {
 	if (!ip->isEmpty()) {
+#ifdef localeWithMaxMind
 		Locale res;
 		res.language = locale.toString().toLower();
 		auto geoMap  = mmdb->get_all_fields(ip->toStdString());
 		res.nation   = QString::fromStdString(geoMap["country_iso_code"]).toUpper();
 		return res;
+#else
+		throw ExceptionV2("MMDB not compiled in, use the flag localeWithMaxMind and provide one");
+#endif
 	}
 	throw HttpException("Unable to decode locale " + locale + " please allow to use the ip to put a nation");
 }
@@ -99,7 +100,7 @@ Locale decodeLocale(const QString& locale, QString* ip) {
 	auto sz = block1Part.size();
 
 	if (sz == 0) {
-		throw HttpException("Unable to decode locale " + locale);
+		throw HttpException("Unable to decode locale >" + locale + "<");
 	}
 
 	//case 0 fr-DZ,fr;q=0.9 (correct) block1Part = fr-DZ
@@ -130,18 +131,12 @@ Locale decodeLocale(const QString& locale, QString* ip) {
 			return {p3[1], p3[0]};
 		}
 	} else if (block1Part[0].size() == 2) { //case 2 it,en;q=0.5 (bad news)
-		                                //Certain case like it_IT is fine, other like en_EN are wrong... we will retrieve for now the nation from the IP
+		//Certain case like it_IT is fine, other like en_EN are wrong... we will retrieve for now the nation from the IP
 		// cxaLevel == none -> automatic print of the exception messages is disabled
-		if (!ip->isEmpty()) {
-			Locale res;
-			res.language = block1Part[0].toString().toLower();
-			auto geoMap  = mmdb->get_all_fields(ip->toStdString());
-			res.nation   = QString::fromStdString(geoMap["country_iso_code"]).toUpper();
-			return res;
-		}
+		return from2letter(block1Part[0], ip);
 	}
 
-	throw HttpException("Unable to decode locale " + locale);
+	throw HttpException("Unable to decode locale >" + locale + "<");
 }
 
 bool Locale::isNull() {

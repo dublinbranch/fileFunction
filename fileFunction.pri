@@ -1,3 +1,6 @@
+#this will enable certain ip based function on localeV2, of course you will need to provide a max mind db handler
+#DEFINES += localeWithMaxMind
+
 CONFIG += object_parallel_to_source
 
 SOURCES += \
@@ -40,6 +43,7 @@ HEADERS += \
 	$$PWD/stringDefine.h \
 	$$PWD/localev2.h \
 	$$PWD/threadstatush.h
+	
 # - SETUP -
 # zypper in libzip-devel
 # OR (should be equivalent)
