@@ -70,7 +70,7 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 			return false;
 		}
 	}
-	reader.getta("/enabled", ok);
+	reader.byPtr("/enabled", ok);
 	if (!ok) {
 		static auto refreshAfter = QDateTime::currentSecsSinceEpoch() + 120;
 		if (refreshAfter < QDateTime::currentSecsSinceEpoch() + 120) {
@@ -79,14 +79,14 @@ bool UaDecoder::decode(const QString& userAgent, const QString& decoderUrl) {
 		}
 	}
 
-	reader.getta("/osName", osName);
-	reader.getta("/osVersion", osVersion);
-	reader.getta("/browserVersion", browserVersion);
-	reader.getta("/browserName", browserName);
-	reader.getta("/device", device);
+	reader.byPtr("/osName", osName);
+	reader.byPtr("/osVersion", osVersion);
+	reader.byPtr("/browserVersion", browserVersion);
+	reader.byPtr("/browserName", browserName);
+	reader.byPtr("/device", device);
 	deviceRDX(device);
-	reader.getta("/brand", brand);
-	reader.getta("/bot", bot);
+	reader.byPtr("/brand", brand);
+	reader.byPtr("/bot", bot);
 
 	scoped.lock();
 	cache.insert({userAgent, *this});
